@@ -19,9 +19,9 @@ enum SelectionError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .empty: "没有检测到选中文本，也可以直接在工作台中输入。"
+        case .empty: "没有检测到选中文本。请先选中一段文字再按快捷键，或打开工作台直接输入。"
         case .unsupported: "当前应用不支持直接替换，请复制结果后手动粘贴。"
-        case .accessibilityPermission: "Brio 尚未获得辅助功能权限。请在系统设置中允许当前版本的 Brio，然后重新打开应用。"
+        case .accessibilityPermission: "Brio 需要辅助功能权限才能读取和替换选区。请在“系统设置 → 隐私与安全性 → 辅助功能”中允许 Brio，然后重试。"
         }
     }
 }

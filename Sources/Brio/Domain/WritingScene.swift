@@ -8,6 +8,10 @@ struct WritingScene: Identifiable, Codable, Hashable {
     var instruction: String
     var isBuiltIn: Bool
 
+    static let translationID = builtInID(5)
+
+    var isTranslation: Bool { id == Self.translationID }
+
     init(id: UUID = UUID(), name: String, subtitle: String, symbol: String, instruction: String, isBuiltIn: Bool = false) {
         self.id = id
         self.name = name

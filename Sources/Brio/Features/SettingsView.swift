@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import Carbon.HIToolbox
 import ApplicationServices
 
@@ -44,12 +45,15 @@ struct SettingsView: View {
             }
             .background(Color(nsColor: .windowBackgroundColor))
         }
-        .frame(width: 760, height: 540)
+        .frame(minWidth: 700, idealWidth: 760, minHeight: 480, idealHeight: 540)
         .onAppear {
             let settings = ProviderSettings()
             baseURL = settings.baseURL
             model = settings.model
             apiKey = settings.apiKey
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            accessibilityGranted = AXIsProcessTrusted()
         }
         .onChange(of: shortcuts) { _, value in
             guard !value.hasConflicts else { return }
@@ -62,20 +66,20 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 9) {
                 BrioAppIcon(size: 26)
-                Text("Brio").font(.system(size: 20, weight: .semibold, design: .rounded))
+                Text("Brio").font(.system(.title2, design: .rounded).weight(.semibold))
             }
             .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 24)
             ForEach(SettingsTab.allCases) { item in
                 Button { tab = item } label: {
                     Label(item.rawValue, systemImage: item.symbol)
-                        .font(.system(size: 14, weight: tab == item ? .medium : .regular))
+                        .font(.system(.body, weight: tab == item ? .medium : .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14).padding(.vertical, 11)
                         .background(
                             tab == item
-                                ? Color.primary.opacity(0.075)
-                                : Color.primary.opacity(hoveredTab == item ? 0.045 : 0),
-                            in: RoundedRectangle(cornerRadius: 8)
+                                ? Tone.raised
+                                : (hoveredTab == item ? Tone.fill : Color.clear),
+                            in: RoundedRectangle(cornerRadius: Radius.well)
                         )
                 }
                 .buttonStyle(.plain)
@@ -88,13 +92,14 @@ struct SettingsView: View {
                     }
                 }
                 .foregroundStyle(tab == item ? Color.primary : Color.secondary)
+                .accessibilityAddTraits(tab == item ? .isSelected : [])
                 .padding(.horizontal, 10)
             }
             Spacer()
-            Text("让表达恰如其分").font(.caption).foregroundStyle(.tertiary)
+            Text("让表达恰如其分").font(.caption).foregroundStyle(.secondary)
                 .padding(.horizontal, 24).padding(.bottom, 22)
         }
-        .frame(width: 190)
+        .frame(minWidth: 180, idealWidth: 190, maxWidth: 200)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
     }
 
@@ -142,32 +147,52 @@ struct SettingsView: View {
             SettingsRow(symbol: "network", title: "服务商") {
                 Text("OpenAI 兼容").font(.callout).foregroundStyle(.secondary)
                     .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
+                    .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
             }
             SettingsDivider()
-            SettingsRow(symbol: "link", title: "Base URL") { SettingsTextField(text: $baseURL, prompt: "https://api.openai.com/v1") }
+            SettingsRow(symbol: "link", title: "Base URL") {
+                SettingsTextField(label: "Base URL", text: $baseURL, prompt: "https://api.openai.com/v1")
+            }
             SettingsDivider()
             SettingsRow(symbol: "key", title: "API Key") {
                 HStack(spacing: 4) {
                     Group {
-                        if showsAPIKey { TextField("", text: $apiKey, prompt: Text("sk-...")) }
-                        else { SecureField("", text: $apiKey) }
+                        if showsAPIKey {
+                            TextField("", text: $apiKey, prompt: Text("sk-..."))
+                                .accessibilityLabel("API Key")
+                        } else {
+                            SecureField("", text: $apiKey)
+                                .accessibilityLabel("API Key")
+                        }
                     }
                     .textFieldStyle(.plain)
                     .padding(.horizontal, 10).padding(.vertical, 7)
-                    .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 6))
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.08)))
+                    .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+                    .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
                     Button(showsAPIKey ? "隐藏 Key" : "显示 Key", systemImage: showsAPIKey ? "eye.slash" : "eye") { showsAPIKey.toggle() }
                         .labelStyle(.iconOnly).buttonStyle(.borderless).foregroundStyle(.secondary)
                         .frame(width: 28)
                 }
-                .frame(width: 310)
+                .frame(minWidth: 240, maxWidth: 360)
             }
             SettingsDivider()
-            SettingsRow(symbol: "cpu", title: "模型") { SettingsTextField(text: $model, prompt: "模型 ID") }
+            SettingsRow(symbol: "cpu", title: "模型") {
+                SettingsTextField(label: "模型", text: $model, prompt: "模型 ID")
+            }
             SettingsDivider()
             HStack {
-                if saved { Label("已保存", systemImage: "checkmark.circle.fill").font(.callout).foregroundStyle(.green) }
+                if saved {
+                    HStack(spacing: Space.xs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(Color(nsColor: .systemGreen))
+                            .accessibilityHidden(true)
+                        Text("已保存")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("设置已保存")
+                }
                 Spacer()
                 Button("保存设置") {
                     let settings = ProviderSettings()
@@ -211,7 +236,7 @@ struct SettingsView: View {
                                 }
                             }
                             .labelsHidden()
-                            .frame(width: 170)
+                            .frame(minWidth: 150, maxWidth: 190)
                             ShortcutRecorder(shortcut: shortcutBinding(for: index))
                             Spacer()
                             if shortcuts.actions[index].shortcut != nil || shortcuts.actions[index].sceneID != nil {
@@ -223,17 +248,22 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                             }
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, Space.md)
+                        .padding(.vertical, Space.sm)
                     }
                 } footer: {
                     Text("最多配置 5 个。选中文字后按下场景快捷键，将直接读取选区并使用对应场景生成。只有同时选择场景和快捷键时才会生效。")
                 }
             }
             if shortcuts.hasConflicts {
-                Label("快捷键存在重复，请修改后才能保存并生效。", systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout)
-                    .foregroundStyle(.orange)
+                HStack(spacing: Space.sm) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color(nsColor: .systemOrange))
+                        .accessibilityHidden(true)
+                    Text("快捷键存在重复，请修改后才能保存并生效。")
+                        .font(.callout)
+                        .foregroundStyle(.primary)
+                }
             }
         }
     }
@@ -262,18 +292,23 @@ struct SettingsView: View {
     private var sceneSettings: some View {
         VStack(alignment: .leading, spacing: 22) {
             SettingsCard {
-                SettingsRow(symbol: "tag", title: "场景名称") { SettingsTextField(text: $sceneName, prompt: "例如：客服回复") }
+                SettingsRow(symbol: "tag", title: "场景名称") {
+                    SettingsTextField(label: "场景名称", text: $sceneName, prompt: "例如：客服回复")
+                }
                 SettingsDivider()
-                SettingsRow(symbol: "text.bubble", title: "简短说明") { SettingsTextField(text: $sceneSubtitle, prompt: "礼貌、清晰、简洁") }
+                SettingsRow(symbol: "text.bubble", title: "简短说明") {
+                    SettingsTextField(label: "简短说明", text: $sceneSubtitle, prompt: "礼貌、清晰、简洁")
+                }
                 SettingsDivider()
                 SettingsRow(symbol: "slider.horizontal.3", title: "场景规则") {
                     TextField("描述希望模型如何优化文本", text: $sceneInstruction, axis: .vertical)
                         .textFieldStyle(.plain)
+                        .accessibilityLabel("场景规则")
                         .lineLimit(4...6)
                         .padding(.horizontal, 10).padding(.vertical, 7)
-                        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 6))
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.08)))
-                        .frame(width: 310)
+                        .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+                        .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
+                        .frame(minWidth: 240, maxWidth: 360)
                 }
                 SettingsDivider()
                 HStack {
@@ -311,23 +346,24 @@ struct SettingsView: View {
                                 selectSceneForEditing(scene)
                             } label: {
                                 Text(scene.name)
-                                    .font(.system(size: 14))
+                                    .font(.body)
                                     .lineLimit(1)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 12)
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, Space.sm)
                                     .background(
-                                        editingSceneID == scene.id ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.025),
-                                        in: RoundedRectangle(cornerRadius: 7)
+                                        editingSceneID == scene.id ? Tone.accentSoft : Tone.wash,
+                                        in: RoundedRectangle(cornerRadius: Radius.well)
                                     )
                                     .overlay {
                                         if editingSceneID == scene.id {
-                                            RoundedRectangle(cornerRadius: 7).stroke(Color.accentColor.opacity(0.35))
+                                            RoundedRectangle(cornerRadius: Radius.well).stroke(Tone.accentBorder)
                                         }
                                     }
                             }
                             .buttonStyle(.plain)
                             .foregroundStyle(editingSceneID == scene.id ? Color.accentColor : Color.primary)
+                            .accessibilityAddTraits(editingSceneID == scene.id ? .isSelected : [])
                         }
                     }
                     .padding(10)
@@ -361,8 +397,8 @@ private struct SettingsCard<Content: View, Footer: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(spacing: 0) { content }
-                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.primary.opacity(0.055)))
+                .background(Tone.wash, in: RoundedRectangle(cornerRadius: Radius.card))
+                .overlay(RoundedRectangle(cornerRadius: Radius.card).stroke(Tone.hairline))
             footer.font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
         }
     }
@@ -381,8 +417,11 @@ private struct SettingsRow<Accessory: View>: View {
     @ViewBuilder let accessory: Accessory
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 16)).foregroundStyle(.secondary).frame(width: 22)
-            Text(title).font(.system(size: 14))
+            Image(systemName: symbol).font(.body).foregroundStyle(.secondary).frame(width: 22)
+            Text(title)
+                .font(.body)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 16)
             accessory
         }
@@ -395,14 +434,16 @@ private struct SettingsDivider: View {
 }
 
 private struct SettingsTextField: View {
+    let label: String
     @Binding var text: String
     let prompt: String
     var body: some View {
         TextField("", text: $text, prompt: Text(prompt)).textFieldStyle(.plain)
+            .accessibilityLabel(label)
             .padding(.horizontal, 10).padding(.vertical, 7)
-            .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 6))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.08)))
-            .frame(width: 310)
+            .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+            .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
+            .frame(minWidth: 240, maxWidth: 360)
     }
 }
 
@@ -434,9 +475,9 @@ private struct ShortcutRecorder: View {
                 return nil
             }
         }
-        .monospaced().frame(width: 150).padding(.vertical, 7)
-        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 6))
-        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.primary.opacity(0.08)))
+        .monospaced().frame(minWidth: 132, idealWidth: 150, maxWidth: 170).padding(.vertical, 7)
+        .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+        .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
         .onDisappear(perform: stop)
     }
     private func stop() {

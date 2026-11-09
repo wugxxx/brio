@@ -21,9 +21,11 @@ final class AppState: ObservableObject {
     @Published var selectedScene: WritingScene
     @Published var sourceText = ""
     @Published var resultText = ""
+    @Published var resultTitle = "生成结果"
     @Published var followUp = ""
     @Published var isProcessing = false
     @Published var errorMessage: String?
+    @Published var needsAccessibilityPermission = false
     @Published var source: SelectionSource = .manual
     @Published var statusMessage: String?
     @Published var isPinned = false {
@@ -31,9 +33,11 @@ final class AppState: ObservableObject {
     }
     var presentPanel: (() -> Void)?
     var dismissPanel: (() -> Void)?
+    var openSettings: (() -> Void)?
     var pinStateChanged: ((Bool) -> Void)?
     private let store = SceneStore()
     private var generationTask: Task<Void, Never>?
+    private var generationID = UUID()
     private var sourceApplication: NSRunningApplication?
 
     init() {
@@ -44,7 +48,9 @@ final class AppState: ObservableObject {
 
     func openFromShortcut(sceneID: WritingScene.ID? = nil) {
         generationTask?.cancel()
+        generationID = UUID()
         isProcessing = false
+        needsAccessibilityPermission = false
         sourceApplication = NSWorkspace.shared.frontmostApplication
         if let sceneID, let scene = scenes.first(where: { $0.id == sceneID }) {
             selectedScene = scene
@@ -55,13 +61,20 @@ final class AppState: ObservableObject {
             source = selection.source
             errorMessage = nil
             resultText = ""
+            resultTitle = "生成结果"
             followUp = ""
             statusMessage = nil
             presentPanel?()
             generate()
         } catch {
             errorMessage = error.localizedDescription
+            if let selectionError = error as? SelectionError,
+               case .accessibilityPermission = selectionError {
+                needsAccessibilityPermission = true
+            }
             resultText = ""
+            resultTitle = "生成结果"
+            statusMessage = nil
             presentPanel?()
         }
     }
@@ -69,45 +82,69 @@ final class AppState: ObservableObject {
     func openWorkspace() {
         if !WorkspacePreferences().preservesContent {
             generationTask?.cancel()
+            generationID = UUID()
             isProcessing = false
             sourceText = ""
             resultText = ""
+            resultTitle = "生成结果"
             followUp = ""
-            statusMessage = nil
         }
         source = .manual
         errorMessage = nil
+        needsAccessibilityPermission = false
+        statusMessage = nil
         presentPanel?()
     }
 
     func select(_ scene: WritingScene) {
         selectedScene = scene
-        guard !sourceText.isEmpty else { return }
-        generate()
     }
 
     func generate() {
         guard !sourceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "请先输入或选中一段文本。"
+            errorMessage = "还没有可处理的文字。请输入，或选中文字后按场景快捷键。"
+            statusMessage = nil
             return
         }
         let prompt = PromptBuilder.make(scene: selectedScene, text: sourceText, followUp: followUp, previousResult: resultText)
+        resultTitle = selectedScene.isTranslation ? "翻译结果" : "生成结果"
         followUp = ""
-        resultText = ""
         errorMessage = nil
+        needsAccessibilityPermission = false
         statusMessage = nil
         isProcessing = true
         let provider = ProviderSettings().makeProvider()
         generationTask?.cancel()
+        let runID = UUID()
+        generationID = runID
         generationTask = Task {
+            var pending = ""
+            var accumulated = ""
+            var lastFlush = Date()
             do {
                 for try await chunk in provider.stream(prompt: prompt) {
-                    guard !Task.isCancelled else { return }
-                    resultText += chunk
+                    guard !Task.isCancelled, generationID == runID else { return }
+                    pending += chunk
+                    let now = Date()
+                    if pending.count >= 32 || now.timeIntervalSince(lastFlush) >= 0.05 {
+                        accumulated += pending
+                        resultText = accumulated
+                        pending.removeAll(keepingCapacity: true)
+                        lastFlush = now
+                    }
+                }
+                guard generationID == runID else { return }
+                if !pending.isEmpty {
+                    accumulated += pending
+                    resultText = accumulated
                 }
                 isProcessing = false
             } catch {
-                if !Task.isCancelled {
+                if !Task.isCancelled, generationID == runID {
+                    if !pending.isEmpty {
+                        accumulated += pending
+                        resultText = accumulated
+                    }
                     isProcessing = false
                     errorMessage = error.localizedDescription
                 }
@@ -117,6 +154,7 @@ final class AppState: ObservableObject {
 
     func stop() {
         generationTask?.cancel()
+        generationID = UUID()
         isProcessing = false
     }
 
@@ -147,6 +185,18 @@ final class AppState: ObservableObject {
                 presentPanel?()
             }
         }
+    }
+
+    var isProviderConfigured: Bool {
+        let settings = ProviderSettings()
+        return !settings.baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !settings.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !settings.apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    func openAccessibilitySettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     func addScene(name: String, subtitle: String, instruction: String) {
