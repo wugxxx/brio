@@ -1,0 +1,15 @@
+#!/bin/zsh
+set -euo pipefail
+
+ROOT="${0:A:h:h}"
+TOOLCHAIN="${BRIO_SWIFT_TOOLCHAIN:-$HOME/Library/Developer/Toolchains/swift-6.3.2-RELEASE.xctoolchain}"
+
+if [[ ! -x "$TOOLCHAIN/usr/bin/swift" ]]; then
+    print -u2 "error: Swift 6.3.2 toolchain not found at $TOOLCHAIN"
+    print -u2 "Install it from https://www.swift.org/install/macos/ or set BRIO_SWIFT_TOOLCHAIN."
+    exit 1
+fi
+
+export PATH="$TOOLCHAIN/usr/bin:$PATH"
+export CLANG_MODULE_CACHE_PATH="${CLANG_MODULE_CACHE_PATH:-$ROOT/.build/clang-module-cache}"
+exec "$TOOLCHAIN/usr/bin/swift" "$@"
