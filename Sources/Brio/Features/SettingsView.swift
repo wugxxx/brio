@@ -21,6 +21,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @EnvironmentObject private var state: AppState
     @State private var tab: SettingsTab = .general
+    @State private var hoveredTab: SettingsTab?
     @State private var baseURL = ""
     @State private var model = ""
     @State private var apiKey = ""
@@ -68,9 +69,22 @@ struct SettingsView: View {
                         .font(.system(size: 14, weight: tab == item ? .medium : .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14).padding(.vertical, 11)
-                        .background(tab == item ? Color.primary.opacity(0.075) : .clear, in: RoundedRectangle(cornerRadius: 8))
+                        .background(
+                            tab == item
+                                ? Color.primary.opacity(0.075)
+                                : Color.primary.opacity(hoveredTab == item ? 0.045 : 0),
+                            in: RoundedRectangle(cornerRadius: 8)
+                        )
                 }
                 .buttonStyle(.plain)
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    if hovering {
+                        hoveredTab = item
+                    } else if hoveredTab == item {
+                        hoveredTab = nil
+                    }
+                }
                 .foregroundStyle(tab == item ? Color.primary : Color.secondary)
                 .padding(.horizontal, 10)
             }

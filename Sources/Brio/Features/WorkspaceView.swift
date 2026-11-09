@@ -15,7 +15,7 @@ struct WorkspaceView: View {
                 }
                 .padding(24)
             }
-            if state.isProcessing || !state.resultText.isEmpty {
+            if !state.isProcessing && !state.resultText.isEmpty {
                 footer
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -25,7 +25,7 @@ struct WorkspaceView: View {
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.18), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .padding(6)
-        .animation(.easeInOut(duration: 0.2), value: state.isProcessing || !state.resultText.isEmpty)
+        .animation(.easeInOut(duration: 0.2), value: !state.isProcessing && !state.resultText.isEmpty)
         .onExitCommand { state.dismissPanel?() }
     }
 
@@ -184,9 +184,15 @@ struct WorkspaceView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.iBeam.set()
+                } else {
+                    NSCursor.arrow.set()
+                }
+            }
         }
         .padding(20)
-        .background(.ultraThinMaterial)
     }
 
     private var sourceLabel: String {
