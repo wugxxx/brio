@@ -9,13 +9,16 @@ struct BrioApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra("Brio", systemImage: "sparkles") {
+        MenuBarExtra {
             Button("处理选中文本") { AppState.shared.openFromShortcut() }
             Button("打开工作台") { AppState.shared.openWorkspace() }
             Divider()
             Button("设置…") { delegate.openSettings() }
             Divider()
             Button("退出 Brio") { NSApplication.shared.terminate(nil) }
+        } label: {
+            Image(nsImage: MenuBarIcon.image)
+                .accessibilityLabel("Brio")
         }
         .menuBarExtraStyle(.menu)
     }

@@ -53,6 +53,30 @@ BRIO_CODESIGN_IDENTITY='Brio Development' zsh Scripts/package-dmg.sh
 
 随后在“系统设置 → 隐私与安全性 → 辅助功能”中允许 Brio。发布新版本时保持同一个 `Brio Development` 证书和 Bundle ID，辅助功能授权通常可以保留；更换证书或 Bundle ID 后需要重新授权。没有该证书时，可用 `BRIO_CODESIGN_IDENTITY=-` 做 ad-hoc 签名，但每次构建都可能需要重新授权。
 
+## 图标
+
+设计稿位于 `Resources/IconDesign/`：
+
+- `Brio-Ink-1024.png`：深墨蓝主图标
+- `Brio-Paper-1024.png`：浅色纸感版本
+- `Brio-MenuBar-18/36/54/72.png`：菜单栏单色模板
+
+`Resources/AppIcon.icns` 默认由深色主图标生成：
+
+```sh
+Scripts/build-iconset.sh
+```
+
+切换到浅色版本：
+
+```sh
+Scripts/build-iconset.sh Resources/IconDesign/Brio-Paper-1024.png
+```
+
+菜单栏图标由 `Sources/Brio/App/MenuBarIcon.swift` 按 18pt 矢量绘制，并作为 template image 自动适配深浅色菜单栏，不依赖位图缩放。
+
+构建 `.app` 时会自动打包 `AppIcon.icns`。
+
 ## 验证
 
 ```sh

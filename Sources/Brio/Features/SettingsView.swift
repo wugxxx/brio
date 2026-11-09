@@ -61,7 +61,12 @@ struct SettingsView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 9) {
-                Image(systemName: "sparkles").font(.system(size: 18, weight: .semibold)).foregroundStyle(.tint)
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 26, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .accessibilityHidden(true)
                 Text("Brio").font(.system(size: 20, weight: .semibold, design: .rounded))
             }
             .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 24)
