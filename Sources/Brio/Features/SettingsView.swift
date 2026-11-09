@@ -26,13 +26,14 @@ struct SettingsView: View {
     @State private var model = ""
     @State private var apiKey = ""
     @State private var showsAPIKey = false
-    @State private var shortcut = ShortcutPreference.load()
+    @State private var shortcuts = ShortcutConfiguration.load()
     @State private var sceneName = ""
     @State private var sceneSubtitle = ""
     @State private var sceneInstruction = ""
     @State private var editingSceneID: WritingScene.ID?
     @State private var saved = false
     @State private var accessibilityGranted = AXIsProcessTrusted()
+    @AppStorage("preserveWorkspaceContent") private var preserveWorkspaceContent = true
 
     var body: some View {
         HStack(spacing: 0) {
@@ -50,7 +51,8 @@ struct SettingsView: View {
             model = settings.model
             apiKey = settings.apiKey
         }
-        .onChange(of: shortcut) { _, value in
+        .onChange(of: shortcuts) { _, value in
+            guard !value.hasConflicts else { return }
             value.save()
             HotKeyManager.shared.register(value)
         }
@@ -117,11 +119,21 @@ struct SettingsView: View {
                 }
             }
             SettingsDivider()
+            SettingsRow(symbol: "text.document", title: "再次打开工作台") {
+                Picker("再次打开工作台", selection: $preserveWorkspaceContent) {
+                    Text("保留上次内容").tag(true)
+                    Text("清空内容").tag(false)
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+            }
+            SettingsDivider()
             SettingsRow(symbol: "lock.shield", title: "本地配置") {
                 Text("仅保存在此 Mac").font(.callout).foregroundStyle(.secondary)
             }
         } footer: {
-            Text("文本仅在生成时发送给你配置的 AI 服务。读取和替换选区需要辅助功能权限。")
+            Text("工作台内容包含原文、生成结果和后续调整；所选场景始终保留。文本仅在生成时发送给你配置的 AI 服务。")
         }
     }
 
@@ -176,11 +188,75 @@ struct SettingsView: View {
     }
 
     private var shortcutSettings: some View {
-        SettingsCard {
-            SettingsRow(symbol: "text.badge.checkmark", title: "润色选中文本") { ShortcutRecorder(shortcut: $shortcut) }
-        } footer: {
-            Text("选中文字后，在任意应用中按下快捷键即可唤起 Brio。点击快捷键按钮后，按下新的组合键即可修改。")
+        VStack(alignment: .leading, spacing: 18) {
+            SettingsCard {
+                SettingsRow(symbol: "macwindow", title: "打开工作台") { ShortcutRecorder(shortcut: workspaceShortcutBinding) }
+            } footer: {
+                Text("只打开工作台，不读取选区或自动生成；是否清空内容可在“通用”中设置。")
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                Text("场景快捷操作").font(.headline)
+                SettingsCard {
+                    ForEach(0..<ShortcutConfiguration.actionLimit, id: \.self) { index in
+                        if index > 0 { SettingsDivider() }
+                        HStack(spacing: 12) {
+                            Text("\(index + 1)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .frame(width: 18)
+                            Picker("场景", selection: sceneBinding(for: index)) {
+                                Text("未绑定场景").tag(WritingScene.ID?.none)
+                                ForEach(state.scenes) { scene in
+                                    Text(scene.name).tag(WritingScene.ID?.some(scene.id))
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 170)
+                            ShortcutRecorder(shortcut: shortcutBinding(for: index))
+                            Spacer()
+                            if shortcuts.actions[index].shortcut != nil || shortcuts.actions[index].sceneID != nil {
+                                Button("清除", systemImage: "xmark.circle.fill") {
+                                    shortcuts.actions[index] = SceneShortcut()
+                                }
+                                .labelStyle(.iconOnly)
+                                .buttonStyle(.borderless)
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                    }
+                } footer: {
+                    Text("最多配置 5 个。选中文字后按下场景快捷键，将直接读取选区并使用对应场景生成。只有同时选择场景和快捷键时才会生效。")
+                }
+            }
+            if shortcuts.hasConflicts {
+                Label("快捷键存在重复，请修改后才能保存并生效。", systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+            }
         }
+    }
+
+    private func sceneBinding(for index: Int) -> Binding<WritingScene.ID?> {
+        Binding(
+            get: { shortcuts.actions[index].sceneID },
+            set: { shortcuts.actions[index].sceneID = $0 }
+        )
+    }
+
+    private func shortcutBinding(for index: Int) -> Binding<ShortcutPreference?> {
+        Binding(
+            get: { shortcuts.actions[index].shortcut },
+            set: { shortcuts.actions[index].shortcut = $0 }
+        )
+    }
+
+    private var workspaceShortcutBinding: Binding<ShortcutPreference?> {
+        Binding(
+            get: { shortcuts.workspace },
+            set: { if let shortcut = $0 { shortcuts.workspace = shortcut } }
+        )
     }
 
     private var sceneSettings: some View {
@@ -331,13 +407,21 @@ private struct SettingsTextField: View {
 }
 
 private struct ShortcutRecorder: View {
-    @Binding var shortcut: ShortcutPreference
+    @Binding var shortcut: ShortcutPreference?
     @State private var monitor: Any?
     @State private var recording = false
     var body: some View {
-        Button(recording ? "按下组合键…" : shortcut.display) {
+        Button(recording ? "按下组合键…" : (shortcut?.display ?? "未设置")) {
+            if recording {
+                stop()
+                return
+            }
             recording = true
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                if event.keyCode == 53 {
+                    stop()
+                    return nil
+                }
                 let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
                 guard modifiers.contains(.command) || modifiers.contains(.control) else { return nil }
                 var value: UInt32 = 0

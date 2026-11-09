@@ -10,7 +10,7 @@ struct BrioApp: App {
 
     var body: some Scene {
         MenuBarExtra("Brio", systemImage: "sparkles") {
-            Button("润色选中文本") { AppState.shared.openFromShortcut() }
+            Button("处理选中文本") { AppState.shared.openFromShortcut() }
             Button("打开工作台") { AppState.shared.openWorkspace() }
             Divider()
             Button("设置…") { delegate.openSettings() }
@@ -34,8 +34,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         AppState.shared.pinStateChanged = { [weak self] isPinned in
             self?.panel?.level = isPinned ? .floating : .normal
         }
-        HotKeyManager.shared.onTrigger = { AppState.shared.openFromShortcut() }
-        HotKeyManager.shared.register(ShortcutPreference.load())
+        HotKeyManager.shared.onWorkspaceTrigger = { AppState.shared.openWorkspace() }
+        HotKeyManager.shared.onSceneTrigger = { sceneID in
+            AppState.shared.openFromShortcut(sceneID: sceneID)
+        }
+        HotKeyManager.shared.register(ShortcutConfiguration.load())
         if CommandLine.arguments.contains("--workspace") {
             DispatchQueue.main.async { AppState.shared.openWorkspace() }
         }

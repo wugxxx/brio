@@ -1,6 +1,18 @@
 import AppKit
 import Foundation
 
+struct WorkspacePreferences {
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var preservesContent: Bool {
+        defaults.object(forKey: "preserveWorkspaceContent") as? Bool ?? true
+    }
+}
+
 @MainActor
 final class AppState: ObservableObject {
     static let shared = AppState()
@@ -30,21 +42,39 @@ final class AppState: ObservableObject {
         selectedScene = scenes[0]
     }
 
-    func openFromShortcut() {
+    func openFromShortcut(sceneID: WritingScene.ID? = nil) {
+        generationTask?.cancel()
+        isProcessing = false
         sourceApplication = NSWorkspace.shared.frontmostApplication
+        if let sceneID, let scene = scenes.first(where: { $0.id == sceneID }) {
+            selectedScene = scene
+        }
         do {
             let selection = try SelectionService.capture()
             sourceText = selection.text
             source = selection.source
             errorMessage = nil
+            resultText = ""
+            followUp = ""
+            statusMessage = nil
+            presentPanel?()
+            generate()
         } catch {
             errorMessage = error.localizedDescription
+            resultText = ""
+            presentPanel?()
         }
-        resultText = ""
-        presentPanel?()
     }
 
     func openWorkspace() {
+        if !WorkspacePreferences().preservesContent {
+            generationTask?.cancel()
+            isProcessing = false
+            sourceText = ""
+            resultText = ""
+            followUp = ""
+            statusMessage = nil
+        }
         source = .manual
         errorMessage = nil
         presentPanel?()
@@ -146,5 +176,9 @@ final class AppState: ObservableObject {
             selectedScene = scenes[min(index, scenes.count - 1)]
         }
         store.save(scenes)
+        var shortcuts = ShortcutConfiguration.load()
+        shortcuts.removeScene(id)
+        shortcuts.save()
+        HotKeyManager.shared.register(shortcuts)
     }
 }
