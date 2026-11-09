@@ -3,6 +3,11 @@ import XCTest
 @testable import Brio
 
 final class WritingSceneTests: XCTestCase {
+    func testBuiltInSceneIDsAreStable() {
+        XCTAssertEqual(WritingScene.builtIns.map(\.id), WritingScene.builtIns.map(\.id))
+        XCTAssertEqual(Set(WritingScene.builtIns.map(\.id)).count, WritingScene.builtIns.count)
+    }
+
     func testInitialPrompt() {
         let scene = WritingScene(name: "精简", subtitle: "", symbol: "", instruction: "删除冗余")
         let prompt = PromptBuilder.make(scene: scene, text: "原始文本", followUp: "", previousResult: "")
@@ -55,5 +60,28 @@ final class WritingSceneTests: XCTestCase {
         let loaded = store.load()
         XCTAssertEqual(loaded.count, scenes.count)
         XCTAssertFalse(loaded.contains(where: { $0.id == removedID }))
+    }
+
+    func testBuiltInIDMigrationUpdatesShortcutBinding() throws {
+        let suiteName = "BrioTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = SceneStore(defaults: defaults)
+        var scenes = WritingScene.builtIns
+        let oldID = UUID()
+        scenes[0].id = oldID
+        store.save(scenes)
+        let shortcuts = ShortcutConfiguration(
+            workspace: ShortcutPreference(),
+            actions: [SceneShortcut(sceneID: oldID, shortcut: ShortcutPreference(keyCode: 18))]
+        )
+        defaults.set(try JSONEncoder().encode(shortcuts), forKey: "shortcutConfiguration")
+        let loaded = store.load()
+        let migratedShortcuts = try JSONDecoder().decode(
+            ShortcutConfiguration.self,
+            from: try XCTUnwrap(defaults.data(forKey: "shortcutConfiguration"))
+        )
+        XCTAssertEqual(loaded[0].id, WritingScene.builtIns[0].id)
+        XCTAssertEqual(migratedShortcuts.actions[0].sceneID, WritingScene.builtIns[0].id)
     }
 }
