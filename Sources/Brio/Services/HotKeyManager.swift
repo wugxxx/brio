@@ -75,6 +75,21 @@ struct ShortcutConfiguration: Codable, Equatable {
     }
 }
 
+struct ShortcutRegistrationFailure: Equatable {
+    let status: OSStatus
+
+    var message: String {
+        switch status {
+        case OSStatus(eventHotKeyExistsErr):
+            "该快捷键已被其他应用占用，请换一个。"
+        case OSStatus(eventHotKeyInvalidErr):
+            "macOS 不接受这个组合键，请换一个。"
+        default:
+            "无法注册这个快捷键，请换一个组合键。"
+        }
+    }
+}
+
 enum KeyCodeNames {
     static let names = [0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X", 8: "C", 9: "V", 11: "B", 12: "Q", 13: "W", 14: "E", 15: "R", 16: "Y", 17: "T", 18: "1", 19: "2", 20: "3", 21: "4", 22: "6", 23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8", 29: "0", 31: "O", 32: "U", 34: "I", 35: "P", 37: "L", 38: "J", 39: "'", 40: "K", 45: "N", 46: "M", 49: "Space"]
 }
@@ -88,7 +103,8 @@ final class HotKeyManager {
     private var scenesByHotKeyID: [UInt32: WritingScene.ID] = [:]
     private var handler: EventHandlerRef?
 
-    func register(_ configuration: ShortcutConfiguration) {
+    @discardableResult
+    func register(_ configuration: ShortcutConfiguration) -> [UInt32: ShortcutRegistrationFailure] {
         unregister()
         let eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let callback: EventHandlerUPP = { _, event, _ in
@@ -104,21 +120,30 @@ final class HotKeyManager {
             return noErr
         }
         InstallEventHandler(GetEventDispatcherTarget(), callback, 1, [eventType], nil, &handler)
-        guard !configuration.hasConflicts else { return }
-        register(configuration.workspace, id: 0)
+        guard !configuration.hasConflicts else { return [:] }
+        var failures: [UInt32: ShortcutRegistrationFailure] = [:]
+        if let failure = register(configuration.workspace, id: 0) {
+            failures[0] = failure
+        }
         for (index, action) in configuration.actions.enumerated() {
             guard let sceneID = action.sceneID, let shortcut = action.shortcut else { continue }
             let hotKeyID = UInt32(index + 1)
             scenesByHotKeyID[hotKeyID] = sceneID
-            register(shortcut, id: hotKeyID)
+            if let failure = register(shortcut, id: hotKeyID) {
+                failures[hotKeyID] = failure
+                scenesByHotKeyID.removeValue(forKey: hotKeyID)
+            }
         }
+        return failures
     }
 
-    private func register(_ shortcut: ShortcutPreference, id: UInt32) {
+    private func register(_ shortcut: ShortcutPreference, id: UInt32) -> ShortcutRegistrationFailure? {
         let hotKeyID = EventHotKeyID(signature: 0x4252494F, id: id)
         var hotKey: EventHotKeyRef?
         let status = RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, hotKeyID, GetEventDispatcherTarget(), 0, &hotKey)
-        if status == noErr, let hotKey { hotKeys.append(hotKey) }
+        guard status == noErr else { return ShortcutRegistrationFailure(status: status) }
+        if let hotKey { hotKeys.append(hotKey) }
+        return nil
     }
 
     func unregister() {

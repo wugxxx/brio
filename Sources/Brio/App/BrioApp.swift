@@ -68,12 +68,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func hidePanel() {
+        if AppState.shared.isProcessing {
+            AppState.shared.stop(announce: false)
+        }
         AppState.shared.isPinned = false
         panel?.orderOut(nil)
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        guard !AppState.shared.isPinned, panel?.isVisible == true else { return }
+        guard !AppState.shared.isPinned,
+              !AppState.shared.isProcessing,
+              panel?.isVisible == true else { return }
         hidePanel()
     }
 

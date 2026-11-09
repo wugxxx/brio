@@ -3,7 +3,7 @@ import AppKit
 import Carbon.HIToolbox
 import ApplicationServices
 
-private enum SettingsTab: String, CaseIterable, Identifiable {
+private enum SettingsTab: String, CaseIterable, Identifiable, Hashable {
     case general = "通用"
     case provider = "AI 服务"
     case shortcuts = "快捷键"
@@ -22,7 +22,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @EnvironmentObject private var state: AppState
     @State private var tab: SettingsTab = .general
-    @State private var hoveredTab: SettingsTab?
     @State private var baseURL = ""
     @State private var model = ""
     @State private var apiKey = ""
@@ -32,6 +31,8 @@ struct SettingsView: View {
     @State private var sceneSubtitle = ""
     @State private var sceneInstruction = ""
     @State private var editingSceneID: WritingScene.ID?
+    @State private var pendingSceneDeletion: WritingScene?
+    @State private var shortcutFailures: [UInt32: ShortcutRegistrationFailure] = [:]
     @State private var saved = false
     @State private var accessibilityGranted = AXIsProcessTrusted()
     @AppStorage("preserveWorkspaceContent") private var preserveWorkspaceContent = true
@@ -51,53 +52,40 @@ struct SettingsView: View {
             baseURL = settings.baseURL
             model = settings.model
             apiKey = settings.apiKey
+            shortcutFailures = HotKeyManager.shared.register(shortcuts)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             accessibilityGranted = AXIsProcessTrusted()
         }
         .onChange(of: shortcuts) { _, value in
-            guard !value.hasConflicts else { return }
+            guard !value.hasConflicts else {
+                shortcutFailures = [:]
+                return
+            }
             value.save()
-            HotKeyManager.shared.register(value)
+            shortcutFailures = HotKeyManager.shared.register(value)
         }
     }
 
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 9) {
                 BrioAppIcon(size: 26)
                 Text("Brio").font(.system(.title2, design: .rounded).weight(.semibold))
             }
             .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 24)
-            ForEach(SettingsTab.allCases) { item in
-                Button { tab = item } label: {
+            List(selection: $tab) {
+                ForEach(SettingsTab.allCases) { item in
                     Label(item.rawValue, systemImage: item.symbol)
-                        .font(.system(.body, weight: tab == item ? .medium : .regular))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14).padding(.vertical, 11)
-                        .background(
-                            tab == item
-                                ? Tone.raised
-                                : (hoveredTab == item ? Tone.fill : Color.clear),
-                            in: RoundedRectangle(cornerRadius: Radius.well)
-                        )
+                        .font(.body)
+                        .tag(item)
                 }
-                .buttonStyle(.plain)
-                .contentShape(Rectangle())
-                .onHover { hovering in
-                    if hovering {
-                        hoveredTab = item
-                    } else if hoveredTab == item {
-                        hoveredTab = nil
-                    }
-                }
-                .foregroundStyle(tab == item ? Color.primary : Color.secondary)
-                .accessibilityAddTraits(tab == item ? .isSelected : [])
-                .padding(.horizontal, 10)
             }
-            Spacer()
+            .listStyle(.sidebar)
+            .scrollContentBackground(.hidden)
+            .frame(maxHeight: .infinity)
             Text("让表达恰如其分").font(.caption).foregroundStyle(.secondary)
-                .padding(.horizontal, 24).padding(.bottom, 22)
+                .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 22)
         }
         .frame(minWidth: 180, idealWidth: 190, maxWidth: 200)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
@@ -171,7 +159,9 @@ struct SettingsView: View {
                     .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
                     Button(showsAPIKey ? "隐藏 Key" : "显示 Key", systemImage: showsAPIKey ? "eye.slash" : "eye") { showsAPIKey.toggle() }
                         .labelStyle(.iconOnly).buttonStyle(.borderless).foregroundStyle(.secondary)
-                        .frame(width: 28)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                        .help(showsAPIKey ? "隐藏 API Key" : "显示 API Key")
                 }
                 .frame(minWidth: 240, maxWidth: 360)
             }
@@ -215,7 +205,14 @@ struct SettingsView: View {
     private var shortcutSettings: some View {
         VStack(alignment: .leading, spacing: 18) {
             SettingsCard {
-                SettingsRow(symbol: "macwindow", title: "打开工作台") { ShortcutRecorder(shortcut: workspaceShortcutBinding) }
+                SettingsRow(symbol: "macwindow", title: "打开工作台") {
+                    VStack(alignment: .trailing, spacing: 6) {
+                        ShortcutRecorder(shortcut: workspaceShortcutBinding)
+                        if let failure = shortcutFailures[0] {
+                            ShortcutFailureLabel(failure: failure)
+                        }
+                    }
+                }
             } footer: {
                 Text("只打开工作台，不读取选区或自动生成；是否清空内容可在“通用”中设置。")
             }
@@ -224,28 +221,36 @@ struct SettingsView: View {
                 SettingsCard {
                     ForEach(0..<ShortcutConfiguration.actionLimit, id: \.self) { index in
                         if index > 0 { SettingsDivider() }
-                        HStack(spacing: 12) {
-                            Text("\(index + 1)")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .frame(width: 18)
-                            Picker("场景", selection: sceneBinding(for: index)) {
-                                Text("未绑定场景").tag(WritingScene.ID?.none)
-                                ForEach(state.scenes) { scene in
-                                    Text(scene.name).tag(WritingScene.ID?.some(scene.id))
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 12) {
+                                Text("\(index + 1)")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 18)
+                                Picker("场景", selection: sceneBinding(for: index)) {
+                                    Text("未绑定场景").tag(WritingScene.ID?.none)
+                                    ForEach(state.scenes) { scene in
+                                        Text(scene.name).tag(WritingScene.ID?.some(scene.id))
+                                    }
+                                }
+                                .labelsHidden()
+                                .frame(minWidth: 150, maxWidth: 190)
+                                ShortcutRecorder(shortcut: shortcutBinding(for: index))
+                                Spacer()
+                                if shortcuts.actions[index].shortcut != nil || shortcuts.actions[index].sceneID != nil {
+                                    Button("清除", systemImage: "xmark.circle.fill") {
+                                        shortcuts.actions[index] = SceneShortcut()
+                                    }
+                                    .labelStyle(.iconOnly)
+                                    .buttonStyle(.borderless)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 24, height: 24)
+                                    .contentShape(Rectangle())
                                 }
                             }
-                            .labelsHidden()
-                            .frame(minWidth: 150, maxWidth: 190)
-                            ShortcutRecorder(shortcut: shortcutBinding(for: index))
-                            Spacer()
-                            if shortcuts.actions[index].shortcut != nil || shortcuts.actions[index].sceneID != nil {
-                                Button("清除", systemImage: "xmark.circle.fill") {
-                                    shortcuts.actions[index] = SceneShortcut()
-                                }
-                                .labelStyle(.iconOnly)
-                                .buttonStyle(.borderless)
-                                .foregroundStyle(.secondary)
+                            if let failure = shortcutFailures[UInt32(index + 1)] {
+                                ShortcutFailureLabel(failure: failure)
+                                    .padding(.leading, 30)
                             }
                         }
                         .padding(.horizontal, Space.md)
@@ -316,9 +321,9 @@ struct SettingsView: View {
                     if editingSceneID != nil {
                         Button("取消") { resetSceneForm() }
                         Button("删除场景", role: .destructive) {
-                            guard let editingSceneID else { return }
-                            state.deleteScene(id: editingSceneID)
-                            resetSceneForm()
+                            guard let editingSceneID,
+                                  let scene = state.scenes.first(where: { $0.id == editingSceneID }) else { return }
+                            pendingSceneDeletion = scene
                         }
                         .foregroundStyle(.red)
                     }
@@ -347,7 +352,7 @@ struct SettingsView: View {
                             } label: {
                                 Text(scene.name)
                                     .font(.body)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, Space.sm)
@@ -363,7 +368,9 @@ struct SettingsView: View {
                             }
                             .buttonStyle(.plain)
                             .foregroundStyle(editingSceneID == scene.id ? Color.accentColor : Color.primary)
+                            .accessibilityLabel("编辑场景：\(scene.name)")
                             .accessibilityAddTraits(editingSceneID == scene.id ? .isSelected : [])
+                            .help(scene.name)
                         }
                     }
                     .padding(10)
@@ -373,6 +380,25 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 4)
             }
+        }
+        .alert(
+            "删除场景？",
+            isPresented: Binding(
+                get: { pendingSceneDeletion != nil },
+                set: { if !$0 { pendingSceneDeletion = nil } }
+            ),
+            presenting: pendingSceneDeletion
+        ) { scene in
+            Button("删除「\(scene.name)」", role: .destructive) {
+                state.deleteScene(id: scene.id)
+                pendingSceneDeletion = nil
+                resetSceneForm()
+            }
+            Button("取消", role: .cancel) {
+                pendingSceneDeletion = nil
+            }
+        } message: { _ in
+            Text("场景规则和关联快捷键都会被清除，且无法撤销。")
         }
     }
 
@@ -417,7 +443,11 @@ private struct SettingsRow<Accessory: View>: View {
     @ViewBuilder let accessory: Accessory
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).font(.body).foregroundStyle(.secondary).frame(width: 22)
+            Image(systemName: symbol)
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+                .accessibilityHidden(true)
             Text(title)
                 .font(.body)
                 .lineLimit(2)
@@ -426,6 +456,18 @@ private struct SettingsRow<Accessory: View>: View {
             accessory
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
+    }
+}
+
+private struct ShortcutFailureLabel: View {
+    let failure: ShortcutRegistrationFailure
+
+    var body: some View {
+        Label(failure.message, systemImage: "exclamationmark.triangle.fill")
+            .font(.caption)
+            .foregroundStyle(Color(nsColor: .systemOrange))
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 230, alignment: .leading)
     }
 }
 
@@ -450,39 +492,67 @@ private struct SettingsTextField: View {
 private struct ShortcutRecorder: View {
     @Binding var shortcut: ShortcutPreference?
     @State private var monitor: Any?
-    @State private var recording = false
+    @State private var isRecording = false
+
     var body: some View {
-        Button(recording ? "按下组合键…" : (shortcut?.display ?? "未设置")) {
-            if recording {
-                stop()
-                return
-            }
-            recording = true
-            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                if event.keyCode == 53 {
-                    stop()
-                    return nil
+        Button(shortcut?.display ?? "未设置") { isRecording = true }
+            .monospaced().frame(minWidth: 132, idealWidth: 150, maxWidth: 170).padding(.vertical, 7)
+            .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+            .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
+            .help("点击后按下包含 Command 或 Control 的组合键")
+            .accessibilityLabel("快捷键")
+            .accessibilityValue(shortcut?.display ?? "未设置")
+            .accessibilityHint("点击后录制新的快捷键，按 Escape 取消")
+            .popover(isPresented: $isRecording, arrowEdge: .bottom) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("按下新的快捷键").font(.headline)
+                    Text("组合键需要包含 ⌘ 或 ⌃。按 Esc 取消。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: Space.sm) {
+                        Image(systemName: "keyboard")
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("等待按键…")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("取消") { isRecording = false }
+                            .controlSize(.small)
+                    }
                 }
-                let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-                guard modifiers.contains(.command) || modifiers.contains(.control) else { return nil }
-                var value: UInt32 = 0
-                if modifiers.contains(.command) { value |= UInt32(cmdKey) }
-                if modifiers.contains(.shift) { value |= UInt32(shiftKey) }
-                if modifiers.contains(.option) { value |= UInt32(optionKey) }
-                if modifiers.contains(.control) { value |= UInt32(controlKey) }
-                shortcut = ShortcutPreference(keyCode: UInt32(event.keyCode), modifiers: value)
-                stop()
+                .padding(16)
+                .frame(width: 250)
+                .onAppear(perform: startRecording)
+                .onDisappear(perform: stopRecording)
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+                    isRecording = false
+                }
+            }
+    }
+
+    private func startRecording() {
+        stopRecording()
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 {
+                isRecording = false
                 return nil
             }
+            let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard modifiers.contains(.command) || modifiers.contains(.control) else { return nil }
+            var value: UInt32 = 0
+            if modifiers.contains(.command) { value |= UInt32(cmdKey) }
+            if modifiers.contains(.shift) { value |= UInt32(shiftKey) }
+            if modifiers.contains(.option) { value |= UInt32(optionKey) }
+            if modifiers.contains(.control) { value |= UInt32(controlKey) }
+            shortcut = ShortcutPreference(keyCode: UInt32(event.keyCode), modifiers: value)
+            isRecording = false
+            return nil
         }
-        .monospaced().frame(minWidth: 132, idealWidth: 150, maxWidth: 170).padding(.vertical, 7)
-        .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
-        .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
-        .onDisappear(perform: stop)
     }
-    private func stop() {
+
+    private func stopRecording() {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
-        recording = false
     }
 }

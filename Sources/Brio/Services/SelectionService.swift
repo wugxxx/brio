@@ -28,7 +28,7 @@ enum SelectionError: LocalizedError {
 
 @MainActor
 enum SelectionService {
-    static func capture() throws -> SelectionResult {
+    static func capture() async throws -> SelectionResult {
         guard AXIsProcessTrusted() else {
             AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
             throw SelectionError.accessibilityPermission
@@ -50,6 +50,7 @@ enum SelectionService {
                 item.data(forType: type).map { (type.rawValue, $0) }
             }
         } ?? []
+        defer { restore(oldItems, to: pasteboard) }
         let source = CGEventSource(stateID: .hidSystemState)
         let down = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: true)
         let up = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: false)
@@ -57,9 +58,8 @@ enum SelectionService {
         up?.flags = .maskCommand
         down?.post(tap: .cghidEventTap)
         up?.post(tap: .cghidEventTap)
-        Thread.sleep(forTimeInterval: 0.15)
+        try await Task.sleep(for: .milliseconds(150))
         let text = pasteboard.string(forType: .string)
-        restore(oldItems, to: pasteboard)
         guard let text, !text.isEmpty else { throw SelectionError.empty }
         return SelectionResult(text: text, source: .pasteboard)
     }

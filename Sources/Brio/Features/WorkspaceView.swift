@@ -38,11 +38,16 @@ struct WorkspaceView: View {
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
                 .foregroundStyle(state.isPinned ? Color.accentColor : Color.secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
                 .help(state.isPinned ? "取消固定，点击其他位置时自动关闭" : "固定窗口，点击其他位置时保持显示")
-            Button("关闭", systemImage: "xmark") { state.dismissPanel?() }
+            Button(state.isProcessing ? "停止并关闭" : "关闭", systemImage: "xmark") { state.dismissPanel?() }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+                .help(state.isProcessing ? "停止生成并关闭窗口" : "关闭窗口")
         }
         .padding(.horizontal, Space.xl)
         .padding(.vertical, Space.lg)
@@ -102,6 +107,7 @@ struct WorkspaceView: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             .disabled(state.isProcessing)
+            .help(state.selectedScene.name)
             .padding(.horizontal, Space.md)
             .padding(.vertical, Space.sm)
             .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.well))
@@ -110,6 +116,7 @@ struct WorkspaceView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.tail)
+                .help(state.selectedScene.subtitle)
             Spacer(minLength: 0)
             Button {
                 if state.isProcessing {
@@ -181,6 +188,8 @@ struct WorkspaceView: View {
                     Spacer()
                     Button("重新生成", systemImage: "arrow.clockwise", action: state.generate)
                         .labelStyle(.iconOnly)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
                         .help("重新生成")
                 }
                 .controlSize(.small)
@@ -201,6 +210,8 @@ struct WorkspaceView: View {
                 Button("应用调整", systemImage: "arrow.up.circle.fill", action: state.generate)
                     .labelStyle(.iconOnly)
                     .font(.title2)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
                     .disabled(!canSubmitFollowUp)
                     .help("按调整要求生成")
             }
