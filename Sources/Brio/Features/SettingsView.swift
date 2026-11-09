@@ -41,6 +41,7 @@ struct SettingsView: View {
         HStack(spacing: 0) {
             sidebar
             Divider()
+                .ignoresSafeArea(.container, edges: .top)
             ScrollView {
                 content.padding(26).frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -73,7 +74,9 @@ struct SettingsView: View {
                 BrioAppIcon(size: 26)
                 Text("Brio").font(.system(.title2, design: .rounded).weight(.semibold))
             }
-            .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 24)
+            .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 8)
+            Text("让表达恰如其分").font(.caption).foregroundStyle(.secondary)
+                .padding(.horizontal, 24).padding(.bottom, 20)
             List(selection: $tab) {
                 ForEach(SettingsTab.allCases) { item in
                     Label(item.rawValue, systemImage: item.symbol)
@@ -84,8 +87,6 @@ struct SettingsView: View {
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
             .frame(maxHeight: .infinity)
-            Text("让表达恰如其分").font(.caption).foregroundStyle(.secondary)
-                .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 22)
         }
         .frame(minWidth: 180, idealWidth: 190, maxWidth: 200)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
@@ -132,18 +133,18 @@ struct SettingsView: View {
 
     private var providerSettings: some View {
         SettingsCard {
-            SettingsRow(symbol: "network", title: "服务商") {
+            SettingsRow(symbol: "network", title: "服务商", labelWidth: 72) {
                 Text("OpenAI 兼容").font(.callout).foregroundStyle(.secondary)
                     .padding(.horizontal, 10).padding(.vertical, 6)
                     .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
             }
             SettingsDivider()
-            SettingsRow(symbol: "link", title: "Base URL") {
+            SettingsRow(symbol: "link", title: "Base URL", labelWidth: 72) {
                 SettingsTextField(label: "Base URL", text: $baseURL, prompt: "https://api.openai.com/v1")
             }
             SettingsDivider()
-            SettingsRow(symbol: "key", title: "API Key") {
-                HStack(spacing: 4) {
+            SettingsRow(symbol: "key", title: "API Key", labelWidth: 72) {
+                HStack(spacing: 6) {
                     Group {
                         if showsAPIKey {
                             TextField("", text: $apiKey, prompt: Text("sk-..."))
@@ -154,23 +155,24 @@ struct SettingsView: View {
                         }
                     }
                     .textFieldStyle(.plain)
-                    .padding(.horizontal, 10).padding(.vertical, 7)
-                    .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
-                    .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
                     Button(showsAPIKey ? "隐藏 Key" : "显示 Key", systemImage: showsAPIKey ? "eye.slash" : "eye") { showsAPIKey.toggle() }
                         .labelStyle(.iconOnly).buttonStyle(.borderless).foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
+                        .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                         .help(showsAPIKey ? "隐藏 API Key" : "显示 API Key")
                 }
-                .frame(minWidth: 240, maxWidth: 360)
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
+                .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
+                .frame(minWidth: 240, idealWidth: 360, maxWidth: 360)
             }
             SettingsDivider()
-            SettingsRow(symbol: "cpu", title: "模型") {
+            SettingsRow(symbol: "cpu", title: "模型", labelWidth: 72) {
                 SettingsTextField(label: "模型", text: $model, prompt: "模型 ID")
             }
             SettingsDivider()
             HStack {
+                Spacer()
                 if saved {
                     HStack(spacing: Space.xs) {
                         Image(systemName: "checkmark.circle.fill")
@@ -183,7 +185,6 @@ struct SettingsView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("设置已保存")
                 }
-                Spacer()
                 Button("保存设置") {
                     let settings = ProviderSettings()
                     settings.save(baseURL: baseURL, model: model)
@@ -440,6 +441,7 @@ private extension SettingsCard where Footer == EmptyView {
 private struct SettingsRow<Accessory: View>: View {
     let symbol: String
     let title: String
+    var labelWidth: CGFloat?
     @ViewBuilder let accessory: Accessory
     var body: some View {
         HStack(spacing: 12) {
@@ -448,14 +450,22 @@ private struct SettingsRow<Accessory: View>: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 22)
                 .accessibilityHidden(true)
-            Text(title)
-                .font(.body)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            if let labelWidth {
+                titleLabel.frame(width: labelWidth, alignment: .leading)
+            } else {
+                titleLabel
+            }
             Spacer(minLength: 16)
             accessory
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
+    }
+
+    private var titleLabel: some View {
+        Text(title)
+            .font(.body)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -485,7 +495,7 @@ private struct SettingsTextField: View {
             .padding(.horizontal, 10).padding(.vertical, 7)
             .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.field))
             .overlay(RoundedRectangle(cornerRadius: Radius.field).stroke(Tone.hairline))
-            .frame(minWidth: 240, maxWidth: 360)
+            .frame(minWidth: 240, idealWidth: 360, maxWidth: 360)
     }
 }
 

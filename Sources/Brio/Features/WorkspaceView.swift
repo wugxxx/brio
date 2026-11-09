@@ -60,25 +60,23 @@ struct WorkspaceView: View {
                 Spacer()
                 Text(sourceLabel).font(.caption).foregroundStyle(.secondary)
             }
-            TextEditor(text: $state.sourceText)
+            TextField("粘贴或输入要处理的文字…", text: $state.sourceText, axis: .vertical)
+                .textFieldStyle(.plain)
                 .font(.body)
-                .scrollContentBackground(.hidden)
+                .lineLimit(3...6)
                 .accessibilityLabel("原文")
+                .help("按 Enter 开始生成，Shift + Enter 换行")
+                .onKeyPress(keys: [.return], phases: .down) { press in
+                    guard press.modifiers.isEmpty else { return .ignored }
+                    if hasSourceText && !state.isProcessing {
+                        state.generate()
+                    }
+                    return .handled
+                }
                 .disabled(state.isProcessing)
-                .frame(minHeight: 72, maxHeight: 120)
                 .padding(10)
                 .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.card))
                 .overlay(RoundedRectangle(cornerRadius: Radius.card).stroke(Tone.hairline))
-                .overlay(alignment: .topLeading) {
-                    if state.sourceText.isEmpty {
-                        Text("粘贴或输入要处理的文字…")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 15)
-                            .padding(.vertical, 18)
-                            .allowsHitTesting(false)
-                    }
-                }
         }
     }
 
@@ -93,24 +91,28 @@ struct WorkspaceView: View {
                     }
                 }
             } label: {
-                HStack(spacing: Space.sm) {
-                    Text(state.selectedScene.name)
-                        .font(.body.weight(.medium))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: 180, alignment: .leading)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(state.selectedScene.name)
+                    .font(.body.weight(.medium))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: 180, alignment: .leading)
             }
             .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
             .fixedSize()
+            .padding(.trailing, Space.lg)
             .disabled(state.isProcessing)
             .help(state.selectedScene.name)
             .padding(.horizontal, Space.md)
             .padding(.vertical, Space.sm)
             .background(Tone.fill, in: RoundedRectangle(cornerRadius: Radius.well))
+            .overlay(alignment: .trailing) {
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.trailing, Space.md)
+                    .allowsHitTesting(false)
+            }
             Text(state.selectedScene.subtitle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -125,14 +127,10 @@ struct WorkspaceView: View {
                     state.generate()
                 }
             } label: {
-                Label(
-                    state.isProcessing ? "停止" : (state.selectedScene.isTranslation ? "开始翻译" : "开始生成"),
-                    systemImage: state.isProcessing ? "stop.fill" : "arrow.right"
-                )
-                .font(.body.weight(.medium))
+                Text(state.isProcessing ? "停止" : (state.selectedScene.isTranslation ? "开始翻译" : "开始生成"))
+                    .font(.body.weight(.medium))
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.small)
             .disabled(!state.isProcessing && !hasSourceText)
         }
     }
@@ -172,11 +170,8 @@ struct WorkspaceView: View {
 
             if !state.resultText.isEmpty {
                 HStack(spacing: Space.sm) {
-                    Button("复制结果", systemImage: "doc.on.doc", action: state.copyResult)
-                    Button(
-                        state.source == .manual ? "复制并关闭" : "替换原文",
-                        systemImage: state.source == .manual ? "rectangle.portrait.and.arrow.right" : "arrow.triangle.2.circlepath"
-                    ) {
+                    Button("复制结果", action: state.copyResult)
+                    Button(state.source == .manual ? "复制并关闭" : "替换原文") {
                         if state.source == .manual {
                             state.copyResult()
                             state.dismissPanel?()
@@ -185,14 +180,15 @@ struct WorkspaceView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    Spacer()
                     Button("重新生成", systemImage: "arrow.clockwise", action: state.generate)
                         .labelStyle(.iconOnly)
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                         .help("重新生成")
+                    Spacer()
                 }
-                .controlSize(.small)
                 .disabled(state.isProcessing)
             }
 
@@ -207,9 +203,11 @@ struct WorkspaceView: View {
                     .onSubmit {
                         if canSubmitFollowUp { state.generate() }
                     }
-                Button("应用调整", systemImage: "arrow.up.circle.fill", action: state.generate)
+                Button("应用调整", systemImage: "arrow.up", action: state.generate)
                     .labelStyle(.iconOnly)
-                    .font(.title2)
+                    .buttonStyle(.borderless)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(canSubmitFollowUp ? Color.accentColor : Color.secondary)
                     .frame(width: 28, height: 28)
                     .contentShape(Rectangle())
                     .disabled(!canSubmitFollowUp)
@@ -222,7 +220,6 @@ struct WorkspaceView: View {
         .padding(.horizontal, Space.xl)
         .padding(.vertical, Space.lg)
         .background(.bar)
-        .overlay(alignment: .top) { Divider() }
     }
 
     private func feedbackRow(_ error: String) -> some View {
