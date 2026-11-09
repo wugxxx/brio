@@ -108,6 +108,7 @@ final class FloatingPanel: NSPanel {
     init(contentRect: NSRect, backing: NSWindow.BackingStoreType, defer flag: Bool) {
         super.init(contentRect: contentRect, styleMask: [.borderless, .resizable], backing: backing, defer: flag)
         isFloatingPanel = true
+        hidesOnDeactivate = false
         level = .normal
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         backgroundColor = .clear
