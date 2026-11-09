@@ -31,9 +31,7 @@ struct WorkspaceView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.tint)
+            BrioAppIcon(size: 24)
             Text("Brio")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
             Text("让表达恰如其分")
@@ -174,11 +172,13 @@ struct WorkspaceView: View {
                 Image(systemName: "text.bubble").foregroundStyle(.secondary)
                 TextField("继续调整，例如：再自然一点，缩短一半", text: $state.followUp)
                     .textFieldStyle(.plain)
-                    .onSubmit(state.generate)
+                    .onSubmit {
+                        if canSubmitFollowUp { state.generate() }
+                    }
                 Button("生成", systemImage: "arrow.up.circle.fill", action: state.generate)
                     .labelStyle(.iconOnly)
                     .font(.title2)
-                    .disabled(state.sourceText.isEmpty || state.isProcessing)
+                    .disabled(!canSubmitFollowUp)
                     .keyboardShortcut(.return, modifiers: .command)
             }
             .padding(.horizontal, 14)
@@ -201,5 +201,9 @@ struct WorkspaceView: View {
         case .pasteboard: "通过剪贴板读取"
         case .manual: "可直接编辑"
         }
+    }
+
+    private var canSubmitFollowUp: Bool {
+        !state.followUp.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !state.isProcessing
     }
 }

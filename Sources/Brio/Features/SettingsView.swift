@@ -11,7 +11,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .general: "gearshape"
-        case .provider: "sparkles"
+        case .provider: "server.rack"
         case .shortcuts: "keyboard"
         case .scenes: "square.grid.2x2"
         }
@@ -61,12 +61,7 @@ struct SettingsView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 9) {
-                Image(nsImage: NSApplication.shared.applicationIconImage)
-                    .resizable()
-                    .interpolation(.high)
-                    .frame(width: 26, height: 26)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .accessibilityHidden(true)
+                BrioAppIcon(size: 26)
                 Text("Brio").font(.system(size: 20, weight: .semibold, design: .rounded))
             }
             .padding(.horizontal, 18).padding(.top, 42).padding(.bottom, 24)
