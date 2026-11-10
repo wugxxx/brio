@@ -1,0 +1,17 @@
+{
+  "deviceType": "DESKTOP",
+  "height": "2048",
+  "htmlCode": {
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/10633078610984702217/files/cae857d17920495bbe82976361773f55:download",
+    "mimeType": "text/html",
+    "name": "projects/10633078610984702217/screens/cae857d17920495bbe82976361773f55/fileEntries/html"
+  },
+  "name": "projects/10633078610984702217/screens/cae857d17920495bbe82976361773f55",
+  "screenshot": {
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/10633078610984702217/files/screenshot_00065fd475351dea044f4d1b13332889:download",
+    "mimeType": "image/png",
+    "name": "projects/10633078610984702217/screens/cae857d17920495bbe82976361773f55/fileEntries/screenshot"
+  },
+  "title": "Brio - 工作台 (Floating HUD)",
+  "width": "2560"
+}

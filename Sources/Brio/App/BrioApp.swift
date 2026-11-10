@@ -53,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func configurePanel() {
         let view = WorkspaceView().environmentObject(AppState.shared)
-        let panel = FloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 600, height: 660), backing: .buffered, defer: false)
+        let panel = FloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 632, height: 580), backing: .buffered, defer: false)
         panel.contentView = NSHostingView(rootView: view)
         panel.delegate = self
         panel.center()
@@ -125,7 +125,7 @@ final class FloatingPanel: NSPanel {
         isOpaque = false
         hasShadow = true
         isMovableByWindowBackground = true
-        minSize = NSSize(width: 480, height: 480)
+        minSize = NSSize(width: 492, height: 520)
     }
 
     override var canBecomeKey: Bool { true }
