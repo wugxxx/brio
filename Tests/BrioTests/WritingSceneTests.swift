@@ -4,7 +4,10 @@ import XCTest
 
 final class WritingSceneTests: XCTestCase {
     func testBuiltInSceneIDsAreStable() {
-        XCTAssertEqual(WritingScene.builtIns.map(\.id), WritingScene.builtIns.map(\.id))
+        XCTAssertEqual(
+            WritingScene.builtIns.map { String($0.id.uuidString.suffix(12)) },
+            ["000000000001", "000000000002", "000000000003", "000000000004", "000000000005"]
+        )
         XCTAssertEqual(Set(WritingScene.builtIns.map(\.id)).count, WritingScene.builtIns.count)
     }
 
@@ -83,5 +86,18 @@ final class WritingSceneTests: XCTestCase {
         )
         XCTAssertEqual(loaded[0].id, WritingScene.builtIns[0].id)
         XCTAssertEqual(migratedShortcuts.actions[0].sceneID, WritingScene.builtIns[0].id)
+    }
+
+    func testRenamingBuiltInSceneDoesNotDuplicateIDs() throws {
+        let suiteName = "BrioTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = SceneStore(defaults: defaults)
+        var scenes = WritingScene.builtIns
+        scenes[0].id = UUID()
+        scenes[0].name = scenes[1].name
+        store.save(scenes)
+        let loaded = store.load()
+        XCTAssertEqual(Set(loaded.map(\.id)).count, loaded.count)
     }
 }

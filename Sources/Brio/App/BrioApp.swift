@@ -1,6 +1,3 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
-
 import AppKit
 import SwiftUI
 
@@ -81,14 +78,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
               !AppState.shared.isProcessing,
               panel?.isVisible == true else { return }
         hidePanel()
-    }
-
-    @objc private func openPanel() {
-        AppState.shared.openFromShortcut()
-    }
-
-    @objc private func openWorkspace() {
-        AppState.shared.openWorkspace()
     }
 
     @objc func openSettings() {

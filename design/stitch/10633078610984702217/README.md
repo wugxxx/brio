@@ -12,4 +12,4 @@ Stitch project: `10633078610984702217`
 | 场景管理 | `e2c2add3ffc1421296f2a34c5ad5efa2` | `screens/scenes/` |
 
 Each folder contains the exported `code.html` and `screen.png`. The original
-ZIP export is retained under `export/`.
+export is retained under `export/`.

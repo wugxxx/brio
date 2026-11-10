@@ -44,6 +44,7 @@ struct SettingsView: View {
     @EnvironmentObject private var state: AppState
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
+    private let sceneInstructionLimit = 2000
 
     @State private var tab: SettingsTab = .general
     @State private var baseURL = ""
@@ -51,6 +52,7 @@ struct SettingsView: View {
     @State private var apiKey = ""
     @State private var showsAPIKey = false
     @State private var providerSaved = false
+    @State private var providerSaveResetTask: Task<Void, Never>?
     @State private var shortcuts = ShortcutConfiguration.load()
     @State private var sceneName = ""
     @State private var sceneSubtitle = ""
@@ -60,10 +62,6 @@ struct SettingsView: View {
     @State private var shortcutFailures: [UInt32: ShortcutRegistrationFailure] = [:]
     @State private var accessibilityGranted = AXIsProcessTrusted()
     @State private var openBehavior: WorkspaceOpenBehavior = .preserve
-
-    init(initialTab: SettingsTab = .general) {
-        _tab = State(initialValue: initialTab)
-    }
 
     private var selectedAppearance: AppAppearance {
         AppAppearance(rawValue: appearance) ?? .system
@@ -78,7 +76,7 @@ struct SettingsView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.4"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
     }
 
     var body: some View {
@@ -105,6 +103,8 @@ struct SettingsView: View {
         ) { scene in
             Button("删除「\(scene.name)」", role: .destructive) {
                 state.deleteScene(id: scene.id)
+                shortcuts = ShortcutConfiguration.load()
+                shortcutFailures = HotKeyManager.shared.register(shortcuts)
                 pendingSceneDeletion = nil
                 resetSceneForm()
             }
@@ -132,7 +132,7 @@ struct SettingsView: View {
                 .padding(.bottom, 8)
 
             VStack(spacing: 3) {
-                ForEach([SettingsTab.scenes, .shortcuts, .provider, .general]) { item in
+                ForEach([SettingsTab.general, .provider, .shortcuts, .scenes]) { item in
                     SettingsNavRow(
                         symbol: item.symbol,
                         title: item.navTitle,
@@ -244,7 +244,7 @@ struct SettingsView: View {
             SettingsSection(
                 symbol: "checkmark.shield",
                 title: "系统权限与辅助功能",
-                meta: "Security audit: OK",
+                meta: "本机权限",
                 tint: palette.accentText
             ) {
                 SettingsInsetRow(
@@ -273,7 +273,7 @@ struct SettingsView: View {
             SettingsSection(
                 symbol: "slider.horizontal.3",
                 title: "交互行为与偏好",
-                meta: "HUD Trigger Policy",
+                meta: "打开行为",
                 tint: palette.signal
             ) {
                 VStack(alignment: .leading, spacing: 10) {
@@ -415,8 +415,9 @@ struct SettingsView: View {
                 }
                 .buttonStyle(SettingsPrimaryButtonStyle())
                 .disabled(
-                    baseURL.trimmingCharacters(in: .whitespaces).isEmpty ||
-                    model.trimmingCharacters(in: .whitespaces).isEmpty
+                    baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                    model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                    apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 )
             }
             .padding(.horizontal, 16)
@@ -495,14 +496,14 @@ struct SettingsView: View {
 
             if shortcuts.hasConflicts {
                 SettingsNotice(
-                    text: "快捷键存在重复。请修改冲突的按键后才能生效。",
+                    text: "快捷键存在重复，尚未保存。请修改冲突的按键后再离开设置。",
                     symbol: "exclamationmark.triangle.fill",
                     tint: palette.warning
                 )
             }
 
             SettingsNotice(
-                text: "最多配置 5 个。在任意应用中选中文字后按下场景快捷键，将读取划选文字并调用对应场景生成；只有同时选择场景和快捷键时才会生效。",
+                text: "最多配置 \(ShortcutConfiguration.actionLimit) 个。在任意应用中选中文字后按下场景快捷键，将读取划选文字并调用对应场景生成；只有同时选择场景和快捷键时才会生效。",
                 symbol: "info.circle",
                 tint: palette.signal
             )
@@ -557,7 +558,9 @@ struct SettingsView: View {
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
-                .frame(maxWidth: .infinity)
+                .frame(width: 220, alignment: .leading)
+
+                Spacer(minLength: 8)
 
                 ShortcutRecorder(shortcut: shortcutBinding(for: index), style: .keycap)
 
@@ -687,10 +690,14 @@ struct SettingsView: View {
                                 .font(SettingsType.caption)
                                 .foregroundStyle(palette.textMuted)
                             Spacer()
-                            Text("\(sceneInstruction.count) / 2000 字")
+                            Text("\(sceneInstruction.count) / \(sceneInstructionLimit) 字")
                                 .font(.system(size: 10.5, design: .monospaced))
                                 .monospacedDigit()
-                                .foregroundStyle(palette.textMuted)
+                                .foregroundStyle(
+                                    sceneInstruction.count > sceneInstructionLimit
+                                        ? palette.warning
+                                        : palette.textMuted
+                                )
                         }
                     }
                 }
@@ -731,8 +738,9 @@ struct SettingsView: View {
                 }
                 .buttonStyle(SettingsPrimaryButtonStyle())
                 .disabled(
-                    sceneName.trimmingCharacters(in: .whitespaces).isEmpty ||
-                    sceneInstruction.trimmingCharacters(in: .whitespaces).isEmpty
+                    sceneName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                    sceneInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                    sceneInstruction.count > sceneInstructionLimit
                 )
             }
             .padding(.horizontal, 16)
@@ -746,15 +754,6 @@ struct SettingsView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(palette.hairline, lineWidth: 1)
         )
-        .overlay(alignment: .top) {
-            LinearGradient(
-                colors: [palette.accent.opacity(0), palette.accent.opacity(0.62), palette.accent.opacity(0)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(height: 1)
-            .clipShape(RoundedRectangle(cornerRadius: 1))
-        }
         .shadow(color: Color.black.opacity(palette.isDark ? 0.20 : 0.04), radius: 12, y: 5)
     }
 
@@ -780,6 +779,7 @@ struct SettingsView: View {
     }
 
     private func providerDidChange() {
+        providerSaveResetTask?.cancel()
         providerSaved = false
     }
 
@@ -788,11 +788,11 @@ struct SettingsView: View {
         settings.save(baseURL: baseURL, model: model)
         settings.saveAPIKey(apiKey)
         providerSaved = true
-        Task { @MainActor in
+        providerSaveResetTask?.cancel()
+        providerSaveResetTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(2.4))
-            if !Task.isCancelled {
-                providerSaved = false
-            }
+            guard !Task.isCancelled else { return }
+            providerSaved = false
         }
     }
 
@@ -1142,7 +1142,7 @@ private struct ShortcutRecorder: View {
                         .strokeBorder(
                             isRecording
                                 ? palette.accent.opacity(0.8)
-                                : Color.white.opacity(palette.isDark ? 0.12 : 0.55),
+                                : (palette.isDark ? Color.white.opacity(0.12) : palette.border),
                             lineWidth: 1
                         )
                 )
@@ -1205,7 +1205,8 @@ private struct ShortcutRecorder: View {
     }
 
     private func startRecording() {
-        stopRecording()
+        stopMonitoring()
+        HotKeyManager.shared.unregister()
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == 53 {
                 isRecording = false
@@ -1225,6 +1226,11 @@ private struct ShortcutRecorder: View {
     }
 
     private func stopRecording() {
+        stopMonitoring()
+        HotKeyManager.shared.register(ShortcutConfiguration.load())
+    }
+
+    private func stopMonitoring() {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
     }

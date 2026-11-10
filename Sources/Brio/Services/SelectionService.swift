@@ -16,12 +16,14 @@ enum SelectionError: LocalizedError {
     case empty
     case unsupported
     case accessibilityPermission
+    case sourceUnavailable
 
     var errorDescription: String? {
         switch self {
         case .empty: "没有检测到选中文本。请先选中一段文字再按快捷键，或打开工作台直接输入。"
         case .unsupported: "当前应用不支持直接替换，请复制结果后手动粘贴。"
         case .accessibilityPermission: "Brio 需要辅助功能权限才能读取和替换选区。请在“系统设置 → 隐私与安全性 → 辅助功能”中允许 Brio，然后重试。"
+        case .sourceUnavailable: "无法切回原来的应用，请复制结果后手动粘贴。"
         }
     }
 }
@@ -36,7 +38,8 @@ enum SelectionService {
         let system = AXUIElementCreateSystemWide()
         var focused: CFTypeRef?
         if AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-           let focused {
+           let focused,
+           CFGetTypeID(focused) == AXUIElementGetTypeID() {
             let element = focused as! AXUIElement
             var selected: CFTypeRef?
             if AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selected) == .success,
@@ -50,17 +53,26 @@ enum SelectionService {
                 item.data(forType: type).map { (type.rawValue, $0) }
             }
         } ?? []
-        defer { restore(oldItems, to: pasteboard) }
-        let source = CGEventSource(stateID: .hidSystemState)
-        let down = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: true)
-        let up = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: false)
-        down?.flags = .maskCommand
-        up?.flags = .maskCommand
-        down?.post(tap: .cghidEventTap)
-        up?.post(tap: .cghidEventTap)
-        try await Task.sleep(for: .milliseconds(150))
-        let text = pasteboard.string(forType: .string)
-        guard let text, !text.isEmpty else { throw SelectionError.empty }
+        let initialChangeCount = pasteboard.changeCount
+        var copiedChangeCount = initialChangeCount
+        defer {
+            if copiedChangeCount != initialChangeCount,
+               pasteboard.changeCount == copiedChangeCount {
+                restore(oldItems, to: pasteboard)
+            }
+        }
+
+        postCommandKey(8)
+        let deadline = Date().addingTimeInterval(0.6)
+        var copiedText: String?
+        repeat {
+            try await Task.sleep(for: .milliseconds(25))
+            guard pasteboard.changeCount != initialChangeCount else { continue }
+            copiedChangeCount = pasteboard.changeCount
+            copiedText = pasteboard.string(forType: .string)
+        } while copiedText == nil && Date() < deadline
+
+        guard let text = copiedText, !text.isEmpty else { throw SelectionError.empty }
         return SelectionResult(text: text, source: .pasteboard)
     }
 
@@ -70,32 +82,38 @@ enum SelectionService {
             let system = AXUIElementCreateSystemWide()
             var focused: CFTypeRef?
             guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-                  let focused else { throw SelectionError.unsupported }
+                  let focused,
+                  CFGetTypeID(focused) == AXUIElementGetTypeID() else { throw SelectionError.unsupported }
             let result = AXUIElementSetAttributeValue(focused as! AXUIElement, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
             guard result == .success else { throw SelectionError.unsupported }
         case .pasteboard:
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
-            let source = CGEventSource(stateID: .hidSystemState)
-            let down = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true)
-            let up = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false)
-            down?.flags = .maskCommand
-            up?.flags = .maskCommand
-            down?.post(tap: .cghidEventTap)
-            up?.post(tap: .cghidEventTap)
+            postCommandKey(9)
         case .manual:
             throw SelectionError.unsupported
         }
     }
 
+    private static func postCommandKey(_ keyCode: CGKeyCode) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        let down = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
+        let up = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
+        down?.flags = .maskCommand
+        up?.flags = .maskCommand
+        down?.post(tap: .cghidEventTap)
+        up?.post(tap: .cghidEventTap)
+    }
+
     private static func restore(_ items: [[(String, Data)]], to pasteboard: NSPasteboard) {
         pasteboard.clearContents()
-        for itemData in items {
+        let restoredItems = items.map { itemData in
             let item = NSPasteboardItem()
             for (type, data) in itemData {
                 item.setData(data, forType: NSPasteboard.PasteboardType(type))
             }
-            pasteboard.writeObjects([item])
+            return item
         }
+        pasteboard.writeObjects(restoredItems)
     }
 }

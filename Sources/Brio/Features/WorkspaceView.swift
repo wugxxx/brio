@@ -10,7 +10,9 @@ struct WorkspaceView: View {
     @FocusState private var followUpFocused: Bool
     @State private var showsSceneMenu = false
 
-    private let panelShape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+    private var panelShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: effectiveScheme == .dark ? 20 : 16, style: .continuous)
+    }
 
     private var selectedAppearance: AppAppearance {
         AppAppearance(rawValue: appearance) ?? .system
@@ -82,7 +84,7 @@ struct WorkspaceView: View {
             )
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.vertical, 10)
         .background(Palette.headerWash)
         .overlay(alignment: .bottom) {
             Rectangle()
@@ -348,7 +350,6 @@ struct WorkspaceView: View {
                 HStack(spacing: 8) {
                     FooterActionButton(
                         title: "复制结果",
-                        keycap: "⌘C",
                         variant: .secondary,
                         action: state.copyResult
                     )
@@ -832,19 +833,24 @@ private struct PressableButtonStyle: ButtonStyle {
 
 private struct PanelSurface: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         ZStack {
-            VisualEffectView(isDark: colorScheme == .dark)
-            LinearGradient(
-                colors: [
-                    Palette.obsidian850.opacity(0.90),
-                    Palette.obsidian900.opacity(0.93),
-                    Palette.obsidian950.opacity(0.95)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            if reduceTransparency {
+                Palette.obsidian900
+            } else {
+                VisualEffectView(isDark: colorScheme == .dark)
+                LinearGradient(
+                    colors: [
+                        Palette.obsidian850.opacity(0.90),
+                        Palette.obsidian900.opacity(0.93),
+                        Palette.obsidian950.opacity(0.95)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
         }
     }
 }

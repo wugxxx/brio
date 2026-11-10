@@ -64,11 +64,17 @@ struct SceneStore {
     private func migrateBuiltInIDs(in scenes: [WritingScene]) -> [WritingScene] {
         var scenes = scenes
         var replacements: [UUID: UUID] = [:]
+        var claimedIDs = Set(scenes.map(\.id))
         for (index, scene) in scenes.enumerated() where scene.isBuiltIn {
-            guard let builtIn = WritingScene.builtIns.first(where: { $0.name == scene.name }) ??
-                    (index < WritingScene.builtIns.count ? WritingScene.builtIns[index] : nil),
+            guard !WritingScene.builtIns.contains(where: { $0.id == scene.id }) else { continue }
+            let candidates = [
+                WritingScene.builtIns.first(where: { $0.name == scene.name }),
+                index < WritingScene.builtIns.count ? WritingScene.builtIns[index] : nil
+            ].compactMap { $0 }
+            guard let builtIn = candidates.first(where: { $0.id == scene.id || !claimedIDs.contains($0.id) }),
                   scene.id != builtIn.id else { continue }
             replacements[scene.id] = builtIn.id
+            claimedIDs.insert(builtIn.id)
             scenes[index].id = builtIn.id
         }
         guard !replacements.isEmpty else { return scenes }

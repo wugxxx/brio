@@ -21,5 +21,8 @@ ln -s /Applications "$STAGE_DIR/Applications"
 
 rm -f "$DMG_PATH" "$DMG_PATH.sha256"
 hdiutil create -volname "Brio $VERSION" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
-shasum -a 256 "$DMG_PATH" > "$DMG_PATH.sha256"
+(
+    cd "$DIST_DIR"
+    shasum -a 256 "Brio-$VERSION.dmg"
+) > "$DMG_PATH.sha256"
 print -r -- "$DMG_PATH"

@@ -38,7 +38,8 @@ struct OpenAIProvider: TextProviding {
                           !model.isEmpty, !apiKey.isEmpty else {
                         throw ProviderError.invalidConfiguration
                     }
-                    if !url.path.hasSuffix("/chat/completions") {
+                    let basePath = url.path.hasSuffix("/") ? String(url.path.dropLast()) : url.path
+                    if !basePath.hasSuffix("/chat/completions") {
                         url.append(path: "chat/completions")
                     }
                     var request = URLRequest(url: url)
@@ -62,10 +63,11 @@ struct OpenAIProvider: TextProviding {
                     }
                     var receivedContent = false
                     for try await line in bytes.lines {
-                        guard line.hasPrefix("data: ") else { continue }
-                        let data = String(line.dropFirst(6))
-                        if data == "[DONE]" { break }
-                        guard let chunk = try? JSONDecoder().decode(ChatChunk.self, from: Data(data.utf8)),
+                        guard line.hasPrefix("data:") else { continue }
+                        let payload = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+                        if payload.isEmpty { continue }
+                        if payload == "[DONE]" { break }
+                        guard let chunk = try? JSONDecoder().decode(ChatChunk.self, from: Data(payload.utf8)),
                               let content = chunk.choices.first?.delta.content else { continue }
                         receivedContent = true
                         continuation.yield(content)

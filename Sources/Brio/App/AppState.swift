@@ -133,15 +133,18 @@ final class AppState: ObservableObject {
             break
         case .clear:
             clearWorkspace()
+            source = .manual
+            sourceApplication = nil
         case .paste:
             clearWorkspace()
+            source = .manual
+            sourceApplication = nil
             if let text = NSPasteboard.general.string(forType: .string),
                !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 sourceText = text
                 statusMessage = "已读取剪贴板"
             }
         }
-        source = .manual
         errorMessage = nil
         needsAccessibilityPermission = false
         presentPanel?()
@@ -168,9 +171,9 @@ final class AppState: ObservableObject {
             announce(errorMessage ?? "还没有可处理的文字。", priority: .medium)
             return
         }
+        let submittedFollowUp = followUp
         let prompt = PromptBuilder.make(scene: selectedScene, text: sourceText, followUp: followUp, previousResult: resultText)
         resultTitle = selectedScene.isTranslation ? "翻译结果" : "生成结果"
-        followUp = ""
         errorMessage = nil
         needsAccessibilityPermission = false
         statusMessage = nil
@@ -202,6 +205,9 @@ final class AppState: ObservableObject {
                 }
                 isProcessing = false
                 if !resultText.isEmpty {
+                    if followUp == submittedFollowUp {
+                        followUp = ""
+                    }
                     announce("生成完成。结果可以复制或替换。")
                 }
             } catch {
@@ -244,12 +250,32 @@ final class AppState: ObservableObject {
             copyResult()
             return
         }
+        guard let sourceApplication else {
+            errorMessage = SelectionError.sourceUnavailable.localizedDescription
+            announce("替换失败。\(SelectionError.sourceUnavailable.localizedDescription)", priority: .high)
+            return
+        }
+        let capturedSource = source
+        let replacement = resultText
         dismissPanel?()
         Task {
-            sourceApplication?.activate()
-            try? await Task.sleep(for: .milliseconds(150))
+            sourceApplication.activate()
+            for _ in 0..<20 {
+                if NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApplication.processIdentifier {
+                    break
+                }
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApplication.processIdentifier else {
+                self.errorMessage = SelectionError.sourceUnavailable.localizedDescription
+                self.presentPanel?()
+                self.announce("替换失败。\(SelectionError.sourceUnavailable.localizedDescription)", priority: .high)
+                return
+            }
             do {
-                try SelectionService.replace(with: resultText, source: source)
+                try SelectionService.replace(with: replacement, source: capturedSource)
+                self.source = .manual
+                self.sourceApplication = nil
                 statusMessage = "已替换原文"
                 announce("已替换原文")
             } catch {
@@ -284,6 +310,9 @@ final class AppState: ObservableObject {
     }
 
     func addScene(name: String, subtitle: String, instruction: String) {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let subtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let instruction = instruction.trimmingCharacters(in: .whitespacesAndNewlines)
         let scene = WritingScene(name: name, subtitle: subtitle.isEmpty ? "自定义场景" : subtitle, symbol: "slider.horizontal.3", instruction: instruction)
         scenes.append(scene)
         store.save(scenes)
@@ -291,9 +320,9 @@ final class AppState: ObservableObject {
 
     func updateScene(id: WritingScene.ID, name: String, subtitle: String, instruction: String) {
         guard let index = scenes.firstIndex(where: { $0.id == id }) else { return }
-        scenes[index].name = name
-        scenes[index].subtitle = subtitle
-        scenes[index].instruction = instruction
+        scenes[index].name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        scenes[index].subtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        scenes[index].instruction = instruction.trimmingCharacters(in: .whitespacesAndNewlines)
         if selectedScene.id == id {
             selectedScene = scenes[index]
         }

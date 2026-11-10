@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SettingsPalette {
@@ -25,8 +26,7 @@ struct SettingsPalette {
     var hairline: Color { Color.primary.opacity(isDark ? 0.08 : 0.08) }
     var border: Color { Color.primary.opacity(isDark ? 0.12 : 0.12) }
     var controlFill: Color { Color.white.opacity(isDark ? 0.05 : 0.72) }
-    var controlBorder: Color { Color.white.opacity(isDark ? 0.08 : 0.10) }
-    var scrim: Color { color(isDark ? 0x0D0F14 : 0xF3F4F6) }
+    var controlBorder: Color { Color.primary.opacity(isDark ? 0.08 : 0.10) }
 
     var pageGlow: RadialGradient {
         RadialGradient(
@@ -426,31 +426,22 @@ extension SettingsSecretField where Trailing == EmptyView {
 
 struct SettingsTextEditor: View {
     @Environment(\.settingsPalette) private var palette
-    @FocusState private var focused: Bool
+    @State private var isEditing = false
 
     @Binding var text: String
     let prompt: String
     var minHeight: CGFloat = 116
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            if text.isEmpty {
-                Text(prompt)
-                    .font(SettingsType.body)
-                    .foregroundStyle(palette.textMuted)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .allowsHitTesting(false)
-            }
-            TextEditor(text: $text)
-                .font(SettingsType.body)
-                .foregroundStyle(palette.textPrimary)
-                .scrollContentBackground(.hidden)
-                .focused($focused)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 5)
-                .accessibilityLabel(prompt)
-        }
+        SettingsTextView(
+            text: $text,
+            isEditing: $isEditing,
+            prompt: prompt,
+            textColor: palette.textPrimary,
+            placeholderColor: palette.textMuted,
+            minHeight: minHeight
+        )
+        .accessibilityLabel(prompt)
         .frame(minHeight: minHeight, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -458,8 +449,122 @@ struct SettingsTextEditor: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(focused ? palette.accent.opacity(0.72) : palette.border, lineWidth: 1)
+                .strokeBorder(isEditing ? palette.accent.opacity(0.72) : palette.border, lineWidth: 1)
         )
+    }
+}
+
+private struct SettingsTextView: NSViewRepresentable {
+    @Binding var text: String
+    @Binding var isEditing: Bool
+    let prompt: String
+    let textColor: Color
+    let placeholderColor: Color
+    let minHeight: CGFloat
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text, isEditing: $isEditing)
+    }
+
+    func makeNSView(context: Context) -> NSScrollView {
+        let scrollView = NSScrollView()
+        scrollView.drawsBackground = false
+        scrollView.contentView.drawsBackground = false
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.focusRingType = .none
+        scrollView.scrollerStyle = .overlay
+
+        let textView = PlaceholderTextView()
+        textView.delegate = context.coordinator
+        textView.drawsBackground = false
+        textView.isRichText = false
+        textView.isEditable = true
+        textView.isSelectable = true
+        textView.allowsUndo = true
+        textView.focusRingType = .none
+        textView.font = .systemFont(ofSize: 12.5)
+        textView.textContainerInset = NSSize(width: 7, height: 5)
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+        textView.minSize = NSSize(width: 0, height: minHeight)
+        textView.maxSize = NSSize(
+            width: CGFloat.greatestFiniteMagnitude,
+            height: CGFloat.greatestFiniteMagnitude
+        )
+        textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.containerSize = NSSize(width: scrollView.contentSize.width, height: .greatestFiniteMagnitude)
+        textView.string = text
+        textView.placeholder = prompt
+        textView.textColor = NSColor(textColor)
+        textView.placeholderColor = NSColor(placeholderColor)
+        scrollView.documentView = textView
+
+        return scrollView
+    }
+
+    func updateNSView(_ scrollView: NSScrollView, context: Context) {
+        guard let textView = scrollView.documentView as? PlaceholderTextView else { return }
+        if textView.string != text {
+            textView.string = text
+        }
+        textView.placeholder = prompt
+        textView.textColor = NSColor(textColor)
+        textView.placeholderColor = NSColor(placeholderColor)
+        textView.minSize = NSSize(width: 0, height: minHeight)
+        textView.textContainer?.containerSize = NSSize(
+            width: scrollView.contentSize.width,
+            height: .greatestFiniteMagnitude
+        )
+    }
+
+    final class Coordinator: NSObject, NSTextViewDelegate {
+        private let text: Binding<String>
+        private let isEditing: Binding<Bool>
+
+        init(text: Binding<String>, isEditing: Binding<Bool>) {
+            self.text = text
+            self.isEditing = isEditing
+        }
+
+        func textDidChange(_ notification: Notification) {
+            guard let textView = notification.object as? NSTextView else { return }
+            text.wrappedValue = textView.string
+        }
+
+        func textDidBeginEditing(_ notification: Notification) {
+            isEditing.wrappedValue = true
+        }
+
+        func textDidEndEditing(_ notification: Notification) {
+            isEditing.wrappedValue = false
+        }
+    }
+}
+
+private final class PlaceholderTextView: NSTextView {
+    var placeholder = "" {
+        didSet { needsDisplay = true }
+    }
+    var placeholderColor: NSColor = .secondaryLabelColor {
+        didSet { needsDisplay = true }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard string.isEmpty, !placeholder.isEmpty else { return }
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font ?? NSFont.systemFont(ofSize: 12.5),
+            .foregroundColor: placeholderColor
+        ]
+        let origin = NSPoint(
+            x: textContainerOrigin.x + (textContainer?.lineFragmentPadding ?? 5),
+            y: textContainerOrigin.y
+        )
+        NSAttributedString(string: placeholder, attributes: attributes).draw(at: origin)
     }
 }
 
@@ -547,7 +652,10 @@ struct SettingsKbd: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .strokeBorder(Color.white.opacity(palette.isDark ? 0.12 : 0.55), lineWidth: 1)
+                    .strokeBorder(
+                        palette.isDark ? Color.white.opacity(0.12) : palette.border,
+                        lineWidth: 1
+                    )
             )
             .shadow(color: Color.black.opacity(palette.isDark ? 0.32 : 0.08), radius: 1.5, y: 1)
     }
@@ -717,7 +825,7 @@ struct SettingsDestructiveButtonStyle: ButtonStyle {
             .frame(height: 30)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(palette.errorSoft.opacity(configuration.isPressed ? 1.4 : 1))
+                    .fill(palette.errorSoft.opacity(configuration.isPressed ? 1 : 0.85))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
