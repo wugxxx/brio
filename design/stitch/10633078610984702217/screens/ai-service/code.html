@@ -1,0 +1,308 @@
+<!DOCTYPE html><html class="h-full bg-slate-950 text-slate-100 antialiased selection:bg-blue-500 selection:text-white" lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Brio - AI 服务配置</title>
+<!-- Tailwind CSS v3 CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'PingFang SC', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Consolas', 'monospace'],
+          },
+          colors: {
+            mac: {
+              bg: '#0F1115',
+              sidebar: '#14171E',
+              card: '#1A1E26',
+              border: '#262B36',
+              input: '#12141A',
+            }
+          },
+          boxShadow: {
+            'window': '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+            'glow-blue': '0 0 20px -3px rgba(59, 130, 246, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-scrollbars">
+    /* Subtle scrollbar for sleek desktop feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body class="h-full flex items-center justify-center p-4 lg:p-10 bg-gradient-to-br from-slate-950 via-[#0B0D13] to-[#121622] overflow-x-hidden">
+<!-- BEGIN: MainWindowWrapper -->
+<!-- Main Desktop macOS App Window Frame -->
+<div class="w-full max-w-[1140px] h-[860px] max-h-[94vh] bg-mac-bg/95 backdrop-blur-2xl rounded-2xl shadow-window border border-white/10 flex overflow-hidden ring-1 ring-black/60 relative" data-purpose="macos-window">
+<!-- BEGIN: LeftSidebar -->
+<aside class="w-64 bg-mac-sidebar/90 border-r border-mac-border/60 flex flex-col justify-between shrink-0 select-none" data-purpose="window-sidebar">
+<div>
+<!-- Window Traffic Light Controls & Brand -->
+<div class="px-5 pt-5 pb-6">
+<div class="flex items-center space-x-2 mb-6" data-purpose="traffic-lights">
+<span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] hover:opacity-80 transition cursor-pointer shadow-sm"></span>
+<span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] hover:opacity-80 transition cursor-pointer shadow-sm"></span>
+<span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] hover:opacity-80 transition cursor-pointer shadow-sm"></span>
+</div>
+<!-- App Brand Identifier -->
+<div class="flex items-center space-x-3 px-1">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 ring-1 ring-white/20">
+<!-- Feather/Pen Icon -->
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+<path d="M21.707 2.293a1 1 0 0 0-1.414 0l-12 12a1 1 0 0 0-.263.465l-2 7a1 1 0 0 0 1.213 1.213l7-2a1 1 0 0 0 .465-.263l12-12a1 1 0 0 0 0-1.414l-5-5zM9.414 15L17 7.414 18.586 9 11 16.586 9.414 15zm-1.42 2.834l1.172 1.172-3.086.882.882-3.086c.328.328.673.673 1.032 1.032z"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h1 class="text-base font-semibold tracking-wide text-white">Brio</h1>
+<span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">v2.4</span>
+</div>
+<p class="text-xs text-slate-400 mt-0.5 font-normal">让表达恰如其分</p>
+</div>
+</div>
+</div>
+<!-- Navigation Menu -->
+<nav class="px-3 space-y-1" data-purpose="sidebar-navigation">
+<div class="px-3 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">首选项</div>
+<!-- Nav Item: 通用 -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-all text-sm group" href="#">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="font-medium">通用</span>
+</a>
+<!-- Nav Item: AI 服务 (Active) -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-blue-600/90 text-white shadow-lg shadow-blue-600/20 text-sm font-medium transition-all group" href="#">
+<div class="flex items-center space-x-3">
+<svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="">AI 服务</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-emerald-400 ring-4 ring-emerald-500/20"></span>
+</a>
+<!-- Nav Item: 快捷键 -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-all text-sm group" href="#">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="font-medium">快捷键</span>
+<kbd class="ml-auto text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘K</kbd>
+</a>
+<!-- Nav Item: 场景 -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-all text-sm group" href="#">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="font-medium">场景设定</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Footer User / Diagnostics -->
+
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 flex flex-col min-w-0 bg-mac-bg" data-purpose="settings-panel">
+<!-- Top Window Titlebar Header -->
+<header class="h-16 px-8 border-b border-mac-border/60 flex items-center justify-between shrink-0 bg-mac-bg/80 backdrop-blur-sm select-none" data-purpose="panel-header">
+<div>
+<div class="text-[11px] font-mono tracking-wider text-slate-400 uppercase">Preferences · AI Service &amp; Models</div>
+<h2 class="text-base font-semibold text-white tracking-tight flex items-center gap-2 mt-0.5">
+            AI 服务与接口配置
+          </h2>
+</div>
+<!-- Connection Status Badge -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-medium" data-purpose="status-pill">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="">已连接 (38ms)</span>
+</div>
+</header>
+<!-- Scrollable Form Container -->
+<div class="flex-1 overflow-y-auto px-8 py-6 space-y-6" data-purpose="scrollable-content">
+<!-- BEGIN: ConfigurationCard1 (Core Connection) -->
+<section class="bg-mac-card/80 border border-mac-border rounded-xl p-5 shadow-sm space-y-5" data-purpose="provider-card">
+<div class="flex items-center justify-between pb-3 border-b border-mac-border/60">
+<div>
+<h3 class="text-sm font-semibold text-white">模型端点设置</h3>
+<p class="text-xs text-slate-400 mt-0.5">支持标准 OpenAI Chat Completions 协议的云端或本地后端</p>
+</div>
+<span class="px-2 py-0.5 text-[11px] rounded bg-white/5 border border-white/10 text-slate-300 font-mono">Compatible API</span>
+</div>
+<div class="space-y-4">
+<!-- Field: 服务商 -->
+<div class="grid grid-cols-12 items-center gap-4">
+<label class="col-span-3 text-sm font-medium text-slate-300 flex items-center space-x-2" for="provider-select">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="">服务商类型</span>
+</label>
+<div class="col-span-9 relative">
+<select class="w-full bg-mac-input border border-mac-border rounded-lg px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer" id="provider-select">
+<option selected="">OpenAI 兼容 (OpenAI, DeepSeek, Ollama, Claude, etc.)</option>
+<option>DeepSeek 官方开放平台 (api.deepseek.com)</option>
+<option>Ollama 本地运行实例 (localhost:11434)</option>
+<option>Anthropic Claude 原生网关</option>
+</select>
+</div>
+</div>
+<!-- Field: Base URL -->
+<div class="grid grid-cols-12 items-center gap-4">
+<label class="col-span-3 text-sm font-medium text-slate-300 flex items-center space-x-2" for="base-url-input">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="">Base URL</span>
+</label>
+<div class="col-span-9 relative flex items-center">
+<div class="absolute left-3 font-mono text-xs text-slate-500 select-none pointer-events-none">POST</div>
+<input class="w-full bg-mac-input border border-mac-border rounded-lg pl-14 pr-24 py-2.5 font-mono text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="base-url-input" placeholder="https://api.domain.com/v1" type="text" value="http://127.0.0.1:3425/v1">
+<button class="absolute right-2 text-xs px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-slate-300 transition-colors font-medium" type="button">
+                  设为本地
+                </button>
+</div>
+</div>
+<!-- Field: API Key -->
+<div class="grid grid-cols-12 items-center gap-4">
+<label class="col-span-3 text-sm font-medium text-slate-300 flex items-center space-x-2" for="api-key-input">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="">API Key</span>
+</label>
+<div class="col-span-9 flex space-x-2">
+<div class="relative flex-1">
+<input class="w-full bg-mac-input border border-mac-border rounded-lg px-3.5 py-2.5 font-mono text-sm text-white tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-10" id="api-key-input" placeholder="输入密钥或 Token" type="password" value="magpie-sk-live994320984128">
+<!-- Toggle Visibility -->
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition" id="toggle-key-visibility" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+</div>
+<button class="px-3.5 py-2.5 rounded-lg bg-white/5 border border-mac-border hover:bg-white/10 hover:border-slate-500 text-sm font-medium text-slate-200 transition flex items-center space-x-1.5 shrink-0" type="button">
+<svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">测试连接</span>
+</button>
+</div>
+</div>
+<!-- Field: 模型 (Model Name) -->
+<div class="grid grid-cols-12 items-center gap-4">
+<label class="col-span-3 text-sm font-medium text-slate-300 flex items-center space-x-2" for="model-name-input">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="">模型名称 (Model)</span>
+</label>
+<div class="col-span-9 space-y-2">
+<input class="w-full bg-mac-input border border-mac-border rounded-lg px-3.5 py-2.5 font-mono text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="model-name-input" placeholder="如: deepseek-chat, gpt-4o, claude-3-5-sonnet" type="text" value="workbuddy/deepseek-v4.1-flash">
+<!-- Quick Preset Pills -->
+<div class="flex items-center gap-2 pt-0.5">
+<span class="text-xs text-slate-400">快速填入:</span>
+<button class="text-xs font-mono px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 transition" onclick="document.getElementById('model-name-input').value = 'deepseek-chat'" type="button">deepseek-chat</button>
+<button class="text-xs font-mono px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 transition" onclick="document.getElementById('model-name-input').value = 'gpt-4o'" type="button">gpt-4o</button>
+<button class="text-xs font-mono px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 transition" onclick="document.getElementById('model-name-input').value = 'claude-3-5-sonnet-latest'" type="button">claude-3-5-sonnet</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: ConfigurationCard1 -->
+<!-- BEGIN: ConfigurationCard2 (Inference Parameters) -->
+
+<!-- END: ConfigurationCard2 -->
+<!-- BEGIN: SecurityPolicyNotice -->
+<div class="flex items-start space-x-3 px-4 py-3 rounded-lg bg-blue-950/20 border border-blue-900/30 text-xs text-slate-400 leading-relaxed" data-purpose="security-notice">
+<svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="">
+            端点需支持 POST <code class="font-mono text-slate-300 bg-white/5 px-1 py-0.5 rounded">{base}/chat/completions</code> 规范及流式 SSE。API Key 仅安全存储于您的本地设备密钥链（macOS Keychain），绝不上报云端服务器。
+          </p>
+</div>
+<!-- END: SecurityPolicyNotice -->
+</div>
+<!-- BEGIN: BottomActionBar -->
+<footer class="h-16 px-8 border-t border-mac-border/60 bg-mac-card/40 flex items-center justify-between shrink-0 select-none" data-purpose="action-bar">
+<button class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition font-medium" type="button">
+          重置为默认
+        </button>
+<div class="flex items-center space-x-3">
+<button class="px-4 py-2 rounded-lg text-sm border border-mac-border hover:bg-white/5 text-slate-300 font-medium transition" type="button">
+            取消
+          </button>
+<button class="px-6 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-medium shadow-md shadow-blue-600/30 transition-all flex items-center space-x-2" id="save-settings-btn" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="">保存设置</span>
+</button>
+</div>
+</footer>
+<!-- END: BottomActionBar -->
+</main>
+<!-- END: MainContentArea -->
+</div>
+<!-- END: MainWindowWrapper -->
+<!-- BEGIN: InteractiveHandlers -->
+<script data-purpose="form-interactions">
+    // Key Reveal Toggle
+    const toggleBtn = document.getElementById('toggle-key-visibility');
+    const keyInput = document.getElementById('api-key-input');
+
+    if (toggleBtn && keyInput) {
+      toggleBtn.addEventListener('click', () => {
+        const isPassword = keyInput.getAttribute('type') === 'password';
+        keyInput.setAttribute('type', isPassword ? 'text' : 'password');
+        toggleBtn.classList.toggle('text-blue-400');
+      });
+    }
+
+    // Save notification simulation
+    const saveBtn = document.getElementById('save-settings-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = `
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>已保存</span>
+        `;
+        setTimeout(() => {
+          saveBtn.innerHTML = originalText;
+        }, 1200);
+      });
+    }
+  </script>
+<!-- END: InteractiveHandlers -->
+
+
+</body></html>

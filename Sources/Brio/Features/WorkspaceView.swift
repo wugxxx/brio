@@ -4,11 +4,21 @@ import SwiftUI
 struct WorkspaceView: View {
     @EnvironmentObject private var state: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var systemColorScheme
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
     @FocusState private var sourceFocused: Bool
     @FocusState private var followUpFocused: Bool
     @State private var showsSceneMenu = false
 
     private let panelShape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+
+    private var selectedAppearance: AppAppearance {
+        AppAppearance(rawValue: appearance) ?? .system
+    }
+
+    private var effectiveScheme: ColorScheme {
+        selectedAppearance.colorScheme ?? systemColorScheme
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,9 +33,9 @@ struct WorkspaceView: View {
             panelShape.strokeBorder(
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.17),
-                        Color.white.opacity(0.06),
-                        Color.white.opacity(0.10)
+                        Palette.panelEdgeTop,
+                        Palette.panelEdgeMiddle,
+                        Palette.panelEdgeBottom
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -34,13 +44,15 @@ struct WorkspaceView: View {
             )
         )
         .padding(6)
-        .environment(\.colorScheme, .dark)
+        .environment(\.colorScheme, effectiveScheme)
+        .preferredColorScheme(selectedAppearance.colorScheme)
         .onExitCommand { state.dismissPanel?() }
     }
 
     private var header: some View {
         HStack(spacing: 10) {
-            BrandMark()
+            BrioAppIcon(size: 28)
+                .shadow(color: Palette.logoShadow, radius: 2, y: 1)
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("Brio")
                     .font(.system(size: 14, weight: .semibold))
@@ -71,10 +83,10 @@ struct WorkspaceView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(Color.white.opacity(0.02))
+        .background(Palette.headerWash)
         .overlay(alignment: .bottom) {
             Rectangle()
-                .fill(Color.white.opacity(0.07))
+                .fill(Palette.hairline)
                 .frame(height: 1)
         }
     }
@@ -131,7 +143,7 @@ struct WorkspaceView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(
-                        sourceFocused ? Palette.blue500.opacity(0.65) : Color.white.opacity(0.08),
+                        sourceFocused ? Palette.blue500.opacity(0.65) : Palette.fieldBorder,
                         lineWidth: 1
                     )
             )
@@ -141,7 +153,7 @@ struct WorkspaceView: View {
                     .padding(-2)
                     .opacity(sourceFocused ? 1 : 0)
             )
-            .shadow(color: Color.black.opacity(0.22), radius: 2, y: 1)
+            .shadow(color: Palette.fieldShadow, radius: 2, y: 1)
             .animation(.easeOut(duration: 0.15), value: sourceFocused)
     }
 
@@ -215,14 +227,14 @@ struct WorkspaceView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                    .strokeBorder(Palette.fieldBorder, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
         .disabled(state.isProcessing)
         .help(state.selectedScene.name)
         .accessibilityLabel("场景：\(state.selectedScene.name)")
-        .popover(isPresented: $showsSceneMenu, arrowEdge: .top) {
+        .popover(isPresented: $showsSceneMenu, arrowEdge: .bottom) {
             scenePicker
         }
     }
@@ -240,16 +252,16 @@ struct WorkspaceView: View {
             }
         }
         .padding(6)
-        .frame(width: 252)
+        .frame(width: 164)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Palette.obsidian850)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
+                .strokeBorder(Palette.border, lineWidth: 1)
         )
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(selectedAppearance.colorScheme)
     }
 
     @ViewBuilder
@@ -272,11 +284,11 @@ struct WorkspaceView: View {
                         .padding(.vertical, 3)
                         .background(
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(Color.white.opacity(0.05))
+                                .fill(Palette.fill)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                .strokeBorder(Palette.hairline, lineWidth: 1)
                         )
                 }
                 .padding(.horizontal, 2)
@@ -294,9 +306,9 @@ struct WorkspaceView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            .strokeBorder(Palette.fieldBorder, lineWidth: 1)
                     )
-                    .shadow(color: Color.black.opacity(0.22), radius: 2, y: 1)
+                    .shadow(color: Palette.fieldShadow, radius: 2, y: 1)
             }
         }
     }
@@ -363,7 +375,7 @@ struct WorkspaceView: View {
         .background(Palette.obsidian900.opacity(0.62))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color.white.opacity(0.07))
+                .fill(Palette.hairline)
                 .frame(height: 1)
         }
     }
@@ -407,7 +419,7 @@ struct WorkspaceView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
-                    followUpFocused ? Palette.blue500.opacity(0.50) : Color.white.opacity(0.10),
+                    followUpFocused ? Palette.blue500.opacity(0.50) : Palette.fieldBorder,
                     lineWidth: 1
                 )
         )
@@ -528,80 +540,12 @@ struct WorkspaceView: View {
 
 // MARK: - Chrome
 
-private struct BrandMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Palette.blue700, Palette.indigo600, Palette.sky400],
-                        startPoint: .bottomLeading,
-                        endPoint: .topTrailing
-                    )
-                )
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(Palette.obsidian950.opacity(0.84))
-                .padding(1)
-            PenNibShape()
-                .stroke(
-                    Palette.sky400,
-                    style: StrokeStyle(lineWidth: 1.55, lineCap: .round, lineJoin: .round)
-                )
-                .frame(width: 15, height: 15)
-        }
-        .frame(width: 28, height: 28)
-        .shadow(color: Color.black.opacity(0.30), radius: 2, y: 1)
-        .accessibilityHidden(true)
-    }
-}
-
-private struct PenNibShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        let scale = min(rect.width, rect.height) / 24
-        let origin = CGPoint(
-            x: rect.midX - 12 * scale,
-            y: rect.midY - 12 * scale
-        )
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-            CGPoint(x: origin.x + x * scale, y: origin.y + y * scale)
-        }
-
-        var path = Path()
-        path.move(to: point(12, 19))
-        path.addLine(to: point(19, 12))
-        path.addLine(to: point(22, 15))
-        path.addLine(to: point(15, 22))
-        path.closeSubpath()
-
-        path.move(to: point(18, 13))
-        path.addLine(to: point(16.5, 5.5))
-        path.addLine(to: point(2, 2))
-        path.addLine(to: point(5.5, 16.5))
-        path.addLine(to: point(13, 18))
-        path.closeSubpath()
-
-        path.move(to: point(2, 2))
-        path.addLine(to: point(9.586, 9.586))
-
-        let radius = 2 * scale
-        path.addEllipse(
-            in: CGRect(
-                x: point(11, 11).x - radius,
-                y: point(11, 11).y - radius,
-                width: radius * 2,
-                height: radius * 2
-            )
-        )
-        return path
-    }
-}
-
 private struct WindowControlButton: View {
     let systemName: String
     let help: String
     var tint: Color = Palette.slate400
     var hoverTint: Color = Palette.slate200
-    var hoverBackground: Color = Color.white.opacity(0.07)
+    var hoverBackground: Color = Palette.controlHover
     var rotation: Double = 0
     let action: () -> Void
 
@@ -637,17 +581,12 @@ private struct SceneMenuRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(scene.name)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(isSelected ? Palette.slate100 : Palette.slate300)
-                    Text(scene.subtitle)
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(Palette.slate500)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
+            HStack(spacing: 8) {
+                Text(scene.name)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(isSelected ? Palette.slate100 : Palette.slate300)
+                    .lineLimit(1)
+                Spacer(minLength: 6)
                 if isSelected {
                     Image(systemName: "checkmark")
                         .font(.system(size: 10, weight: .bold))
@@ -655,7 +594,7 @@ private struct SceneMenuRow: View {
                 }
             }
             .padding(.horizontal, 9)
-            .padding(.vertical, 7)
+            .frame(height: 30)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(rowBackground)
@@ -671,7 +610,7 @@ private struct SceneMenuRow: View {
         if isSelected {
             return Palette.blue600.opacity(hovering ? 0.26 : 0.18)
         }
-        return Color.white.opacity(hovering ? 0.06 : 0)
+        return Palette.controlHover.opacity(hovering ? 1 : 0)
     }
 }
 
@@ -752,7 +691,7 @@ private struct FooterActionButton: View {
                     .strokeBorder(borderColor, lineWidth: 1)
             )
             .shadow(
-                color: variant == .primary ? Color.black.opacity(0.18) : .clear,
+                color: variant == .primary ? Palette.buttonShadow : .clear,
                 radius: 1,
                 y: 1
             )
@@ -768,7 +707,7 @@ private struct FooterActionButton: View {
         case .primary:
             hovering && isEnabled ? Palette.blue500 : Palette.blue600
         case .secondary:
-            hovering && isEnabled ? Color.white.opacity(0.10) : Color.white.opacity(0.06)
+            hovering && isEnabled ? Palette.controlFillHover : Palette.controlFill
         }
     }
 
@@ -777,7 +716,7 @@ private struct FooterActionButton: View {
         case .primary:
             Palette.blue400.opacity(0.30)
         case .secondary:
-            Color.white.opacity(0.08)
+            Palette.controlBorder
         }
     }
 }
@@ -804,13 +743,13 @@ private struct IconActionButton: View {
         .foregroundStyle(hovering && isEnabled ? hoverTint : tint)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(hovering && isEnabled ? Color.white.opacity(0.06) : Color.clear)
+                .fill(hovering && isEnabled ? Palette.controlFillHover : Color.clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(
                     showsBorderOnHover && hovering && isEnabled
-                        ? Color.white.opacity(0.08)
+                        ? Palette.controlBorder
                         : Color.clear,
                     lineWidth: 1
                 )
@@ -838,11 +777,11 @@ private struct InlineButton: View {
                 .padding(.vertical, 3)
                 .background(
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .fill(Color.white.opacity(hovering ? 0.10 : 0.06))
+                        .fill(hovering ? Palette.controlFillHover : Palette.controlFill)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(Palette.controlBorder, lineWidth: 1)
                 )
         }
         .buttonStyle(PressableButtonStyle())
@@ -868,12 +807,12 @@ private struct KeyCap: View {
             .padding(.vertical, 2)
             .background(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(tone == .primary ? Palette.blue700.opacity(0.82) : Color.black.opacity(0.28))
+                    .fill(tone == .primary ? Palette.blue700.opacity(0.82) : Palette.keycapFill)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .strokeBorder(
-                        tone == .primary ? Palette.blue400.opacity(0.20) : Color.white.opacity(0.05),
+                        tone == .primary ? Palette.blue400.opacity(0.20) : Palette.hairline,
                         lineWidth: 1
                     )
             )
@@ -892,9 +831,11 @@ private struct PressableButtonStyle: ButtonStyle {
 // MARK: - Surface
 
 private struct PanelSurface: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         ZStack {
-            VisualEffectView()
+            VisualEffectView(isDark: colorScheme == .dark)
             LinearGradient(
                 colors: [
                     Palette.obsidian850.opacity(0.90),
@@ -909,48 +850,98 @@ private struct PanelSurface: View {
 }
 
 private struct VisualEffectView: NSViewRepresentable {
+    let isDark: Bool
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = .hudWindow
         view.blendingMode = .behindWindow
         view.state = .active
+        configure(view)
         return view
     }
 
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        configure(nsView)
+    }
+
+    private func configure(_ nsView: NSVisualEffectView) {
+        nsView.material = isDark ? .hudWindow : .popover
+        nsView.appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)
+    }
 }
 
 // MARK: - Palette
 
 private enum Palette {
-    static let obsidian950 = Color(hex: 0x090A0F)
-    static let obsidian900 = Color(hex: 0x0E1117)
-    static let obsidian850 = Color(hex: 0x131722)
-    static let obsidian800 = Color(hex: 0x181E2B)
+    static let obsidian950 = Color.adaptive(light: 0xF2F4F8, dark: 0x090A0F)
+    static let obsidian900 = Color.adaptive(light: 0xFFFFFF, dark: 0x0E1117)
+    static let obsidian850 = Color.adaptive(light: 0xFBFCFE, dark: 0x131722)
+    static let obsidian800 = Color.adaptive(light: 0xF5F7FA, dark: 0x181E2B)
 
     static let blue700 = Color(hex: 0x1D4ED8)
     static let blue600 = Color(hex: 0x2563EB)
     static let blue500 = Color(hex: 0x3B82F6)
-    static let blue400 = Color(hex: 0x60A5FA)
-    static let blue300 = Color(hex: 0x93C5FD)
+    static let blue400 = Color.adaptive(light: 0x2563EB, dark: 0x60A5FA)
+    static let blue300 = Color.adaptive(light: 0x1D4ED8, dark: 0x93C5FD)
     static let blue100 = Color(hex: 0xDBEAFE)
 
-    static let indigo600 = Color(hex: 0x4F46E5)
-    static let sky400 = Color(hex: 0x38BDF8)
+    static let slate100 = Color.adaptive(light: 0x0F172A, dark: 0xF1F5F9)
+    static let slate200 = Color.adaptive(light: 0x1E293B, dark: 0xE2E8F0)
+    static let slate300 = Color.adaptive(light: 0x334155, dark: 0xCBD5E1)
+    static let slate400 = Color.adaptive(light: 0x64748B, dark: 0x94A3B8)
+    static let slate500 = Color.adaptive(light: 0x94A3B8, dark: 0x64748B)
 
-    static let slate100 = Color(hex: 0xF1F5F9)
-    static let slate200 = Color(hex: 0xE2E8F0)
-    static let slate300 = Color(hex: 0xCBD5E1)
-    static let slate400 = Color(hex: 0x94A3B8)
-    static let slate500 = Color(hex: 0x64748B)
+    static let emerald500 = Color.adaptive(light: 0x059669, dark: 0x10B981)
+    static let rose300 = Color.adaptive(light: 0xE11D48, dark: 0xFDA4AF)
+    static let rose500 = Color.adaptive(light: 0xE11D48, dark: 0xF43F5E)
+    static let red = Color.adaptive(light: 0xDC2626, dark: 0xF87171)
 
-    static let emerald500 = Color(hex: 0x10B981)
-    static let rose300 = Color(hex: 0xFDA4AF)
-    static let rose500 = Color(hex: 0xF43F5E)
-    static let red = Color(hex: 0xF87171)
+    static let panelEdgeTop = Color.neutral(light: 0.14, dark: 0.17)
+    static let panelEdgeMiddle = Color.neutral(light: 0.06, dark: 0.06)
+    static let panelEdgeBottom = Color.neutral(light: 0.10, dark: 0.10)
+    static let headerWash = Color.neutral(light: 0.018, dark: 0.02)
+    static let hairline = Color.neutral(light: 0.07, dark: 0.07)
+    static let fieldBorder = Color.neutral(light: 0.10, dark: 0.08)
+    static let border = Color.neutral(light: 0.10, dark: 0.09)
+    static let fill = Color.neutral(light: 0.045, dark: 0.05)
+    static let controlFill = Color.neutral(light: 0.045, dark: 0.06)
+    static let controlFillHover = Color.neutral(light: 0.08, dark: 0.10)
+    static let controlBorder = Color.neutral(light: 0.08, dark: 0.08)
+    static let controlHover = Color.neutral(light: 0.05, dark: 0.07)
+    static let keycapFill = Color.neutral(light: 0.05, dark: 0.28)
+
+    static let logoShadow = Color.shadow(light: 0.12, dark: 0.30)
+    static let fieldShadow = Color.shadow(light: 0.06, dark: 0.22)
+    static let buttonShadow = Color.shadow(light: 0.10, dark: 0.18)
 }
 
 private extension Color {
+    static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(
+            nsColor: NSColor(name: nil) { appearance in
+                NSColor(hex: isDarkAppearance(appearance) ? dark : light)
+            }
+        )
+    }
+
+    static func neutral(light: CGFloat, dark: CGFloat) -> Color {
+        Color(
+            nsColor: NSColor(name: nil) { appearance in
+                let isDark = isDarkAppearance(appearance)
+                return (isDark ? NSColor.white : NSColor.black)
+                    .withAlphaComponent(isDark ? dark : light)
+            }
+        )
+    }
+
+    static func shadow(light: CGFloat, dark: CGFloat) -> Color {
+        Color(
+            nsColor: NSColor(name: nil) { appearance in
+                NSColor.black.withAlphaComponent(isDarkAppearance(appearance) ? dark : light)
+            }
+        )
+    }
+
     init(hex: UInt32) {
         self.init(
             .sRGB,
@@ -960,4 +951,19 @@ private extension Color {
             opacity: 1
         )
     }
+}
+
+private extension NSColor {
+    convenience init(hex: UInt32) {
+        self.init(
+            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+
+private func isDarkAppearance(_ appearance: NSAppearance) -> Bool {
+    appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
 }

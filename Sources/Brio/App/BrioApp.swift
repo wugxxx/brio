@@ -61,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func showPanel() {
+        settingsWindow?.orderOut(nil)
         NSApp.activate(ignoringOtherApps: true)
         panel?.level = AppState.shared.isPinned ? .floating : .normal
         panel?.center()
@@ -93,9 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func openSettings() {
         if settingsWindow == nil {
             let view = SettingsView().environmentObject(AppState.shared)
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 540), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 980, height: 700), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
             window.title = "Brio 设置"
-            window.contentMinSize = NSSize(width: 700, height: 480)
+            window.contentMinSize = NSSize(width: 900, height: 620)
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.toolbarStyle = .unifiedCompact

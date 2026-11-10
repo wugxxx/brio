@@ -1,6 +1,30 @@
 import AppKit
 import Foundation
 
+enum WorkspaceOpenBehavior: String, CaseIterable, Identifiable {
+    case preserve
+    case clear
+    case paste
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .preserve: "保留上次内容"
+        case .clear: "清空并就绪"
+        case .paste: "自动读取剪贴板"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .preserve: "bookmark"
+        case .clear: "delete.left"
+        case .paste: "doc.on.clipboard"
+        }
+    }
+}
+
 struct WorkspacePreferences {
     private let defaults: UserDefaults
 
@@ -10,6 +34,19 @@ struct WorkspacePreferences {
 
     var preservesContent: Bool {
         defaults.object(forKey: "preserveWorkspaceContent") as? Bool ?? true
+    }
+
+    var openBehavior: WorkspaceOpenBehavior {
+        if let rawValue = defaults.string(forKey: "workspaceOpenBehavior"),
+           let behavior = WorkspaceOpenBehavior(rawValue: rawValue) {
+            return behavior
+        }
+        return preservesContent ? .preserve : .clear
+    }
+
+    func saveOpenBehavior(_ behavior: WorkspaceOpenBehavior) {
+        defaults.set(behavior.rawValue, forKey: "workspaceOpenBehavior")
+        defaults.set(behavior != .clear, forKey: "preserveWorkspaceContent")
     }
 }
 
@@ -90,20 +127,34 @@ final class AppState: ObservableObject {
 
     func openWorkspace() {
         captureTask?.cancel()
-        if !WorkspacePreferences().preservesContent {
-            generationTask?.cancel()
-            generationID = UUID()
-            isProcessing = false
-            sourceText = ""
-            resultText = ""
-            resultTitle = "生成结果"
-            followUp = ""
+        statusMessage = nil
+        switch WorkspacePreferences().openBehavior {
+        case .preserve:
+            break
+        case .clear:
+            clearWorkspace()
+        case .paste:
+            clearWorkspace()
+            if let text = NSPasteboard.general.string(forType: .string),
+               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                sourceText = text
+                statusMessage = "已读取剪贴板"
+            }
         }
         source = .manual
         errorMessage = nil
         needsAccessibilityPermission = false
-        statusMessage = nil
         presentPanel?()
+    }
+
+    private func clearWorkspace() {
+        generationTask?.cancel()
+        generationID = UUID()
+        isProcessing = false
+        sourceText = ""
+        resultText = ""
+        resultTitle = "生成结果"
+        followUp = ""
     }
 
     func select(_ scene: WritingScene) {

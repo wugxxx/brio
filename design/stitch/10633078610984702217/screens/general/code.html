@@ -1,0 +1,181 @@
+<!DOCTYPE html><html class="dark" lang="zh-CN"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#1e1f25", "primary-fixed": "#e2dfff", "on-tertiary-fixed": "#2c0051", "on-surface": "#e2e2e9", "on-secondary-container": "#00374d", "secondary-fixed-dim": "#7bd0ff", "surface-container-highest": "#33353a", "surface-tint": "#c3c0ff", "surface-dim": "#111318", "outline-variant": "#464555", "on-background": "#e2e2e9", "surface-bright": "#37393f", "tertiary-fixed-dim": "#ddb7ff", "error-container": "#93000a", "error": "#ffb4ab", "surface-variant": "#33353a", "on-error": "#690005", "on-secondary-fixed-variant": "#004c69", "on-secondary": "#00354a", "on-primary-container": "#dad7ff", "inverse-surface": "#e2e2e9", "on-tertiary-fixed-variant": "#6900b3", "background": "#111318", "surface": "#111318", "surface-container-lowest": "#0c0e13", "secondary-fixed": "#c4e7ff", "on-primary-fixed": "#0f0069", "tertiary-fixed": "#f0dbff", "primary-container": "#4f46e5", "inverse-primary": "#4d44e3", "on-secondary-fixed": "#001e2c", "surface-container-high": "#282a2f", "secondary-container": "#00a6e0", "on-error-container": "#ffdad6", "on-tertiary-container": "#ebd2ff", "on-primary": "#1d00a5", "inverse-on-surface": "#2e3036", "tertiary": "#ddb7ff", "primary-fixed-dim": "#c3c0ff", "on-primary-fixed-variant": "#3323cc", "primary": "#c3c0ff", "outline": "#918fa1", "on-tertiary": "#490080", "surface-container-low": "#1a1b21", "tertiary-container": "#862dd4", "on-surface-variant": "#c7c4d8", "secondary": "#7bd0ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-xs": "0.25rem", "margin": "1rem", "space-xl": "1.5rem", "gutter": "0.75rem", "space-md": "0.75rem", "space-lg": "1rem" }, "fontFamily": { "body-sm": ["Inter"], "headline-xl": ["Inter"], "headline-md": ["Inter"], "caption": ["Inter"], "label-kbd": ["Inter"], "label-code": ["JetBrains Mono"], "body-lg": ["Inter"], "body-md": ["Inter"], "headline-lg": ["Inter"] }, "fontSize": { "body-sm": ["0.75rem", { "lineHeight": "1.1rem", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.025em", "fontWeight": "600" }], "headline-md": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.015em", "fontWeight": "500" }], "caption": ["0.6875rem", { "lineHeight": "0.9375rem", "letterSpacing": "0.01em", "fontWeight": "500" }], "label-kbd": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-code": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-lg": ["0.9375rem", { "lineHeight": "1.45rem", "letterSpacing": "-0.01em", "fontWeight": "400" }], "body-md": ["0.8125rem", { "lineHeight": "1.25rem", "letterSpacing": "-0.005em", "fontWeight": "400" }], "headline-lg": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.02em", "fontWeight": "600" }] } } } }</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest/80 backdrop-blur-2xl z-50 flex flex-col justify-between p-space-md shadow-[0_12px_28px_rgba(0,0,0,0.45)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-xs px-space-xs pt-space-xs h-7"><div class="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] cursor-pointer hover:opacity-80 transition-opacity"></div><div class="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24] cursor-pointer hover:opacity-80 transition-opacity"></div><div class="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29] cursor-pointer hover:opacity-80 transition-opacity"></div></div><div class="px-space-xs flex items-center justify-between"><span class="font-caption text-caption text-outline uppercase tracking-wider">Navigation</span><span class="font-label-kbd text-label-kbd bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">⌘1-5</span></div><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary-container font-medium shadow-[0_0_12px_rgba(79,70,229,0.35)]"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="gongzuotai" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-colors">terminal</span><span class="font-body-md text-body-md">工作台</span></div><kbd class="font-label-kbd text-label-kbd text-outline px-1.5 py-0.5 rounded bg-surface-container-low">⌘1</kbd></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="changjing-guanli" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-colors">rule_settings</span><span class="font-body-md text-body-md">场景管理</span></div><kbd class="font-label-kbd text-label-kbd text-outline px-1.5 py-0.5 rounded bg-surface-container-low">⌘2</kbd></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="kuaijiejian" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-colors">keyboard</span><span class="font-body-md text-body-md">快捷键</span></div><kbd class="font-label-kbd text-label-kbd text-outline px-1.5 py-0.5 rounded bg-surface-container-low">⌘3</kbd></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="ai-fuwu" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-colors">neurology</span><span class="font-body-md text-body-md">AI 服务</span></div><kbd class="font-label-kbd text-label-kbd text-outline px-1.5 py-0.5 rounded bg-surface-container-low">⌘4</kbd></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="tongyong" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-colors">tune</span><span class="font-body-md text-body-md">通用</span></div><kbd class="font-label-kbd text-label-kbd text-outline px-1.5 py-0.5 rounded bg-surface-container-low">⌘5</kbd></a></nav></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-dim/80 backdrop-blur-2xl z-40 flex items-center justify-between px-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.25)]"><div class="flex items-center gap-space-md"><img alt="Brio Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrC6PSwxCgmsBGMHZaQ_8vk_hUhaWI4fVz5tbk2QH9N9oiFCcl7CFqo-W2G0Y0Gy1KEREDJXeTqTwTYlFjg0bmxA_y1laRF62cEIaDmMgurDYs8j17pMN0dMkBd_YLe-sDbLv_Uc_jjxd1GjyE8Ucua3rOIZ9bNuZ1EDJUOAWhRKhAGNd86CAPZTASPkueWrJ-H6bvxJcib3SU-k16WbarA62E7rA53P0VPxamK34G3p"><div class="flex flex-col"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">Brio</span><span class="font-caption text-caption text-on-surface-variant/70">· 让表达恰如其分</span></div><span class="font-caption text-caption text-outline font-label-code">macOS Native Shell · v1.4.0</span></div></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-high/60 rounded-lg"><span class="material-symbols-outlined text-[15px] text-outline">keyboard_command_key</span><span class="font-label-code text-label-code text-on-surface-variant">Space to Trigger</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-space-lg"><div class="flex flex-col w-full pb-16">
+<!-- Top Ambient Glow Aura -->
+<div class="relative w-full">
+<div class="absolute -top-10 left-1/4 w-96 h-44 bg-primary-container/10 rounded-full blur-[90px] pointer-events-none"></div>
+<div class="absolute -top-10 right-1/4 w-80 h-36 bg-secondary-container/10 rounded-full blur-[80px] pointer-events-none"></div>
+</div>
+<!-- Breadcrumbs & Meta Bar -->
+<div class="flex items-center justify-between py-space-sm mb-space-md">
+<div class="flex items-center gap-2">
+<span class="font-label-code text-label-code text-outline uppercase tracking-wider">PREFERENCES</span>
+<span class="text-outline-variant font-caption text-caption">/</span>
+<span class="font-label-code text-label-code text-primary bg-primary-container/20 px-2 py-0.5 rounded">GENERAL · 通用设置</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-high/90 text-secondary font-label-code text-label-code shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+        系统状态就绪 · v2.4
+      </div>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface text-caption font-caption transition-colors">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+        检查更新
+      </button>
+</div>
+</div>
+<!-- Main Grid Canvas -->
+<div class="grid grid-cols-1 gap-space-lg items-start">
+<!-- Left Column (Core System Configuration) -->
+<div class="flex flex-col gap-space-lg max-w-4xl">
+<!-- Section 1: System Permissions & Accessibility -->
+<section class="flex flex-col gap-space-sm bg-surface-container-low/90 backdrop-blur-xl p-space-lg rounded-xl shadow-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary">verified_user</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">系统权限与辅助功能</h2>
+</div>
+<span class="font-caption text-caption text-outline font-label-code">SECURITY_AUDIT: OK</span>
+</div>
+
+<!-- Permission Row 1 -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container/80 hover:bg-surface-container-high/80 transition-colors">
+<div class="flex items-start gap-space-md max-w-xl">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">accessibility_new</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md text-on-surface font-medium">辅助功能权限 (Accessibility API)</span>
+<span class="inline-flex items-center gap-1 font-label-code text-caption text-[#4ade80] bg-[#14532d]/40 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> 已授权
+                </span>
+</div>
+
+</div>
+</div>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-body-sm transition-all shadow-sm">
+<span class="">系统设置</span>
+<span class="material-symbols-outlined text-[15px] text-outline">open_in_new</span>
+</button>
+</div>
+<!-- Permission Row 2 -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container/80 hover:bg-surface-container-high/80 transition-colors">
+<div class="flex items-start gap-space-md max-w-xl">
+<div class="w-8 h-8 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">content_paste_search</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md text-on-surface font-medium">智能剪贴板感知 (Zero-Footprint Clipboard)</span>
+<span class="font-label-code text-caption text-secondary bg-secondary-container/20 px-2 py-0.5 rounded-full">
+                  按需读取
+                </span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant/75 mt-0.5">
+                非后台常驻轮询；仅在呼出工作台 HUD 面板时，安全读取剪贴板最新一条文本。
+              </span>
+</div>
+</div>
+<!-- Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="toggle-clipboard" type="checkbox">
+<div class="w-10 h-5 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container shadow-inner"></div>
+</label>
+</div>
+</section>
+<!-- Section 2: Interaction & Behavior -->
+<section class="flex flex-col gap-space-md bg-surface-container-low/90 backdrop-blur-xl p-space-lg rounded-xl shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-secondary">tune</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">交互行为与偏好</h2>
+</div>
+<span class="font-caption text-caption text-outline">HUD_TRIGGER_POLICY</span>
+</div>
+<!-- Segmented Control Row -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container/70 rounded-lg">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[17px] text-outline">history</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">再次打开工作台时</span>
+</div>
+<span class="font-caption text-caption text-outline">呼出输入界面时的默认状态</span>
+</div>
+<!-- Segmented Options -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-1 bg-surface-container-lowest/80 p-1 rounded-lg mt-space-xs shadow-inner" id="reopen-hud-group">
+<button class="reopen-option flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md bg-surface-container-high text-on-surface font-body-sm text-body-sm shadow transition-all" data-value="keep" type="button">
+<span class="material-symbols-outlined text-[15px] text-primary">bookmark</span>
+<span class="">保留上次内容</span>
+</button>
+<button class="reopen-option flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-all" data-value="clear" type="button">
+<span class="material-symbols-outlined text-[15px]">backspace</span>
+<span class="">清空并就绪</span>
+</button>
+<button class="reopen-option flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-all" data-value="paste" type="button">
+<span class="material-symbols-outlined text-[15px]">content_paste</span>
+<span class="">自动读取剪贴板</span>
+</button>
+</div>
+
+</div>
+<!-- Toggles Grid -->
+
+</section>
+<!-- Section 3: Local Storage & Security Isolation -->
+
+</div>
+<!-- Right Column (Diagnostic Summary & Visual macOS Glass Card) -->
+
+</div>
+<!-- Bottom Global Action Bar (Sticky macOS Glass Finish) -->
+
+<!-- Toast Feedback Simulation -->
+<div class="fixed bottom-20 right-8 px-4 py-2.5 rounded-lg bg-surface-bright text-on-surface font-body-sm text-body-sm shadow-2xl flex items-center gap-2 transform translate-y-8 opacity-0 pointer-events-none transition-all duration-300 z-50" id="toast">
+<span class="material-symbols-outlined text-[#4ade80] text-[18px]">task_alt</span>
+<span id="toast-msg" class="">偏好设置已成功保存并实时生效</span>
+</div>
+</div>
+<script>
+  // Segmented control toggle logic
+  const options = document.querySelectorAll('.reopen-option');
+  options.forEach(btn => {
+    btn.addEventListener('click', () => {
+      options.forEach(b => {
+        b.classList.remove('bg-surface-container-high', 'text-on-surface', 'shadow');
+        b.classList.add('text-on-surface-variant');
+      });
+      btn.classList.add('bg-surface-container-high', 'text-on-surface', 'shadow');
+      btn.classList.remove('text-on-surface-variant');
+      showToast('工作台再次打开模式已切换为：' + btn.textContent.trim());
+    });
+  });
+
+  // Save / Reset Toast triggers
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  let toastTimer;
+
+  function showToast(msg) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toastMsg.textContent = msg;
+    toast.classList.remove('translate-y-8', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    toastTimer = setTimeout(() => {
+      toast.classList.add('translate-y-8', 'opacity-0', 'pointer-events-none');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 2400);
+  }
+
+  document.getElementById('btn-save')?.addEventListener('click', () => {
+    showToast('通用偏好设置已同步至 macOS 本地存储');
+  });
+
+  document.getElementById('btn-reset')?.addEventListener('click', () => {
+    showToast('已恢复系统出厂初始偏好');
+  });
+</script></main></div>
+
+</body></html>

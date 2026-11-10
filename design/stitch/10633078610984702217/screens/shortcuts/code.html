@@ -1,0 +1,405 @@
+<!DOCTYPE html><html class="h-full" lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Brio - 快捷键设置 (Preferences · Shortcuts)</title>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            mac: {
+              bg: '#141417',
+              sidebar: '#1a1a1f',
+              card: '#202026',
+              border: '#2e2e38',
+              hover: '#292933',
+              accent: '#3b82f6',
+              textPrimary: '#f3f4f6',
+              textSecondary: '#9ca3af',
+              textMuted: '#6b7280',
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"PingFang SC"', '"Segoe UI"', 'sans-serif'],
+            mono: ['"SF Mono"', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
+          },
+          boxShadow: {
+            'kbd': '0 2px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.12)',
+            'kbd-active': '0 0px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px 0 rgba(0, 0, 0, 0.5)',
+            'window': '0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Tactile Elements & Scrollbar -->
+<style data-purpose="custom-styling">
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e2e38;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    /* Kbd keycap surface */
+    .key-cap {
+      background: linear-gradient(180deg, #2e2e38 0%, #23232b 100%);
+      transition: all 0.15s ease-in-out;
+    }
+    .key-cap:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-mac-textPrimary font-sans antialiased h-full flex items-center justify-center p-4 sm:p-6 md:p-10 select-none">
+<!-- BEGIN: AppWindowContainer -->
+<!-- Main Desktop Window mimicking macOS Dark / Linear / Raycast Style -->
+<div class="w-full max-w-5xl h-[780px] bg-mac-bg border border-mac-border rounded-2xl shadow-window flex overflow-hidden ring-1 ring-white/10 backdrop-blur-xl" data-purpose="macos-window">
+<!-- BEGIN: LeftSidebar -->
+<aside class="w-64 bg-mac-sidebar border-r border-mac-border flex flex-col justify-between shrink-0" data-purpose="navigation-sidebar">
+<!-- Top Section: Traffic Lights & Brand -->
+<div>
+<!-- macOS Traffic Lights -->
+<div class="h-12 px-4 flex items-center gap-2 border-b border-white/[0.04]">
+<div class="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] cursor-pointer hover:opacity-80 transition-opacity"></div>
+<div class="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24] cursor-pointer hover:opacity-80 transition-opacity"></div>
+<div class="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29] cursor-pointer hover:opacity-80 transition-opacity"></div>
+</div>
+<!-- App Brand Header -->
+<div class="px-5 py-5 flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold text-lg">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24">
+<path d="M12 2a4 4 0 0 0-4 4c0 2.2 1.8 4 4 4s4-1.8 4-4a4 4 0 0 0-4-4Z"></path>
+<path d="M6 14v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4"></path>
+<path d="m14 10 4 4"></path>
+<path d="m10 10-4 4"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-semibold text-base text-white tracking-wide">Brio</span>
+<span class="text-[10px] font-mono uppercase bg-white/10 px-1.5 py-0.5 rounded text-mac-textSecondary">v2.4</span>
+</div>
+<p class="text-xs text-mac-textMuted tracking-tight">让表达恰如其分</p>
+</div>
+</div>
+<!-- Navigation Menu -->
+<nav class="px-3 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-mac-textSecondary hover:text-white hover:bg-mac-hover transition-colors group" href="#">
+<svg class="w-4 h-4 text-mac-textMuted group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="14" rx="2" ry="2" width="20" x="2" y="3"></rect>
+<line x1="8" x2="16" y1="21" y2="21"></line>
+<line x1="12" x2="12" y1="17" y2="21"></line>
+</svg>
+            工作台
+          </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-mac-textSecondary hover:text-white hover:bg-mac-hover transition-colors group" href="#">
+<svg class="w-4 h-4 text-mac-textMuted group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="7" rx="1" width="7" x="3" y="3"></rect>
+<rect height="7" rx="1" width="7" x="14" y="3"></rect>
+<rect height="7" rx="1" width="7" x="14" y="14"></rect>
+<rect height="7" rx="1" width="7" x="3" y="14"></rect>
+</svg>
+            场景管理
+          </a>
+<!-- Active Shortcut Tab -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium bg-blue-600/15 text-blue-400 border border-blue-500/20 group" href="#">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="12" rx="2" width="20" x="2" y="6"></rect>
+<path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"></path>
+</svg>
+<span class="">快捷键设置</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-mac-textSecondary hover:text-white hover:bg-mac-hover transition-colors group" href="#">
+<svg class="w-4 h-4 text-mac-textMuted group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+</svg>
+            AI 服务与模型
+          </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-mac-textSecondary hover:text-white hover:bg-mac-hover transition-colors group" href="#">
+<svg class="w-4 h-4 text-mac-textMuted group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+            通用设置
+          </a>
+</nav>
+</div>
+<!-- Bottom Status Pill in Sidebar -->
+
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 flex flex-col h-full bg-mac-bg overflow-hidden" data-purpose="main-workspace">
+<!-- Top Window Navigation Bar / Header -->
+<header class="h-12 border-b border-mac-border px-8 flex items-center justify-between shrink-0 bg-mac-bg/80 backdrop-blur-md">
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-semibold tracking-wider text-mac-textMuted uppercase font-mono">Preferences</span>
+<span class="text-mac-textMuted/40">/</span>
+<span class="text-xs font-medium text-mac-textSecondary">Shortcuts</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-xs text-mac-textMuted hover:text-white transition-colors flex items-center gap-1" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            帮助指南
+          </button>
+</div>
+</header>
+<!-- Scrollable Main Settings Area -->
+<div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+<!-- Title Banner -->
+<div>
+<h1 class="text-xl font-semibold text-white tracking-tight">快捷键与全局唤起</h1>
+<p class="text-xs text-mac-textSecondary mt-1 leading-relaxed">
+            自定义全局召唤工作台以及常用高频场景的热键，提供无缝的沉浸式输入流体验。
+          </p>
+</div>
+<!-- BEGIN: GlobalTriggerSection -->
+<section class="space-y-3" data-purpose="global-hotkey-section">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold uppercase tracking-wider text-mac-textMuted">全局唤起</span>
+<span class="text-xs text-blue-400 cursor-pointer hover:underline">使用系统推荐</span>
+</div>
+<!-- Global Trigger Card -->
+<div class="bg-mac-card border border-mac-border rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/20 transition-all">
+<div class="flex items-start sm:items-center gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="16" rx="3" width="20" x="2" y="4"></rect>
+<path d="M7 15h4M15 15h2M7 11h2M13 11h4"></path>
+</svg>
+</div>
+<div>
+<div class="text-sm font-medium text-white flex items-center gap-2">
+                  打开工作台
+                  <span class="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded-full">主触发器</span>
+</div>
+<div class="text-xs text-mac-textMuted mt-0.5">
+                  随时随地呼出工作台，支持读取剪贴板或屏幕划选文本；清空逻辑可在通用中设定。
+                </div>
+</div>
+</div>
+<!-- Tactile Hotkey Keycap Component -->
+<div class="flex items-center gap-2 self-end sm:self-center">
+<button class="key-cap flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 shadow-kbd hover:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white font-mono text-sm tracking-wider" data-purpose="hotkey-pill" type="button">
+<span class="text-xs text-mac-textSecondary">⇧</span>
+<span class="text-xs text-mac-textSecondary">⌘</span>
+<span class="font-bold text-sm">B</span>
+</button>
+<button class="p-2 text-mac-textMuted hover:text-white hover:bg-mac-hover rounded-lg transition-colors" title="重新录制" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</section>
+<!-- END: GlobalTriggerSection -->
+<!-- BEGIN: SceneHotkeysSection -->
+<section class="space-y-3" data-purpose="scene-action-hotkeys">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold uppercase tracking-wider text-mac-textMuted">场景快捷操作</span>
+<span class="text-xs text-mac-textMuted">已启用 3 / 5 个快捷槽位</span>
+</div>
+<!-- Scene Slots List Container -->
+<div class="bg-mac-card border border-mac-border rounded-xl divide-y divide-mac-border/70 overflow-hidden shadow-sm">
+<!-- Slot 1: 中英互译 -->
+<div class="p-3.5 px-4 flex items-center justify-between gap-4 hover:bg-mac-hover/40 transition-colors" data-purpose="hotkey-slot">
+<div class="flex items-center gap-3.5 flex-1 max-w-sm">
+<span class="w-5 text-center text-xs font-mono text-mac-textMuted font-bold">1</span>
+<!-- Dropdown Select -->
+<div class="relative w-full">
+<select class="w-full bg-[#17171c] border border-mac-border hover:border-white/20 text-white text-xs font-medium rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
+<option selected="">中英互译</option>
+<option>自然润色</option>
+<option>高情商回复</option>
+<option>代码审查与重构</option>
+<option>提取核心摘要</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-mac-textMuted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Hotkey Display & Actions -->
+<div class="flex items-center gap-3">
+<button class="key-cap flex items-center justify-center min-w-[76px] px-3 py-1.5 rounded-lg border border-white/10 shadow-kbd hover:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500 text-white font-mono text-xs tracking-wider" type="button">
+<span class="text-mac-textSecondary mr-1">⌘</span>
+<span class="font-bold">1</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded-lg text-mac-textMuted hover:text-red-400 hover:bg-red-500/10 transition-colors" title="清除按键绑定" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+</div>
+<!-- Slot 2: 自然润色 -->
+<div class="p-3.5 px-4 flex items-center justify-between gap-4 hover:bg-mac-hover/40 transition-colors" data-purpose="hotkey-slot">
+<div class="flex items-center gap-3.5 flex-1 max-w-sm">
+<span class="w-5 text-center text-xs font-mono text-mac-textMuted font-bold">2</span>
+<!-- Dropdown Select -->
+<div class="relative w-full">
+<select class="w-full bg-[#17171c] border border-mac-border hover:border-white/20 text-white text-xs font-medium rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
+<option>中英互译</option>
+<option selected="">自然润色</option>
+<option>高情商回复</option>
+<option>代码审查与重构</option>
+<option>提取核心摘要</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-mac-textMuted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Hotkey Display & Actions -->
+<div class="flex items-center gap-3">
+<button class="key-cap flex items-center justify-center min-w-[76px] px-3 py-1.5 rounded-lg border border-white/10 shadow-kbd hover:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500 text-white font-mono text-xs tracking-wider" type="button">
+<span class="text-mac-textSecondary mr-1">⌘</span>
+<span class="font-bold">2</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded-lg text-mac-textMuted hover:text-red-400 hover:bg-red-500/10 transition-colors" title="清除按键绑定" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+</div>
+<!-- Slot 3: 高情商回复 -->
+<div class="p-3.5 px-4 flex items-center justify-between gap-4 hover:bg-mac-hover/40 transition-colors" data-purpose="hotkey-slot">
+<div class="flex items-center gap-3.5 flex-1 max-w-sm">
+<span class="w-5 text-center text-xs font-mono text-mac-textMuted font-bold">3</span>
+<!-- Dropdown Select -->
+<div class="relative w-full">
+<select class="w-full bg-[#17171c] border border-mac-border hover:border-white/20 text-white text-xs font-medium rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
+<option>中英互译</option>
+<option>自然润色</option>
+<option selected="">高情商回复</option>
+<option>代码审查与重构</option>
+<option>提取核心摘要</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-mac-textMuted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Hotkey Display & Actions -->
+<div class="flex items-center gap-3">
+<button class="key-cap flex items-center justify-center min-w-[76px] px-3 py-1.5 rounded-lg border border-white/10 shadow-kbd hover:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500 text-white font-mono text-xs tracking-wider" type="button">
+<span class="text-mac-textSecondary mr-1">⌘</span>
+<span class="font-bold">3</span>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded-lg text-mac-textMuted hover:text-red-400 hover:bg-red-500/10 transition-colors" title="清除按键绑定" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+</div>
+<!-- Slot 4: 未绑定场景 -->
+<div class="p-3.5 px-4 flex items-center justify-between gap-4 hover:bg-mac-hover/40 transition-colors opacity-75 hover:opacity-100" data-purpose="hotkey-slot">
+<div class="flex items-center gap-3.5 flex-1 max-w-sm">
+<span class="w-5 text-center text-xs font-mono text-mac-textMuted font-bold">4</span>
+<!-- Dropdown Select -->
+<div class="relative w-full">
+<select class="w-full bg-[#17171c]/60 border border-mac-border/60 hover:border-white/20 text-mac-textSecondary text-xs font-medium rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
+<option disabled="" selected="">未绑定场景 / 选择场景...</option>
+<option>中英互译</option>
+<option>自然润色</option>
+<option>高情商回复</option>
+<option>代码审查与重构</option>
+<option>提取核心摘要</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-mac-textMuted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Unset Hotkey Placeholder Button -->
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center gap-1.5 min-w-[76px] px-3 py-1.5 rounded-lg border border-dashed border-mac-border hover:border-white/40 text-mac-textMuted hover:text-white bg-white/[0.02] text-xs font-mono transition-colors" type="button">
+<svg class="w-3 h-3 text-mac-textMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">未设置</span>
+</button>
+<div class="w-7 h-7"></div> <!-- Spacing placeholder to keep alignment -->
+</div>
+</div>
+<!-- Slot 5: 未绑定场景 -->
+<div class="p-3.5 px-4 flex items-center justify-between gap-4 hover:bg-mac-hover/40 transition-colors opacity-75 hover:opacity-100" data-purpose="hotkey-slot">
+<div class="flex items-center gap-3.5 flex-1 max-w-sm">
+<span class="w-5 text-center text-xs font-mono text-mac-textMuted font-bold">5</span>
+<!-- Dropdown Select -->
+<div class="relative w-full">
+<select class="w-full bg-[#17171c]/60 border border-mac-border/60 hover:border-white/20 text-mac-textSecondary text-xs font-medium rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
+<option disabled="" selected="">未绑定场景 / 选择场景...</option>
+<option>中英互译</option>
+<option>自然润色</option>
+<option>高情商回复</option>
+<option>代码审查与重构</option>
+<option>提取核心摘要</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-mac-textMuted">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Unset Hotkey Placeholder Button -->
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center gap-1.5 min-w-[76px] px-3 py-1.5 rounded-lg border border-dashed border-mac-border hover:border-white/40 text-mac-textMuted hover:text-white bg-white/[0.02] text-xs font-mono transition-colors" type="button">
+<svg class="w-3 h-3 text-mac-textMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">未设置</span>
+</button>
+<div class="w-7 h-7"></div> <!-- Spacing placeholder to keep alignment -->
+</div>
+</div>
+</div>
+<!-- Bottom Notice Tip -->
+<div class="p-3 bg-blue-500/[0.04] border border-blue-500/10 rounded-xl flex items-start gap-2.5">
+<svg class="w-4 h-4 text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="10" stroke-width="2"></circle>
+<path d="M12 16v-4m0-4h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<p class="text-xs text-mac-textMuted leading-relaxed">
+              最多配置 <span class="text-mac-textSecondary font-semibold">5 个</span>。在任意应用程序中选中文字后，直接按下场景快捷键，即可读取划选文字并调用对应场景生成处理，只有同时选择场景和快捷键时才会生效。
+            </p>
+</div>
+</section>
+<!-- END: SceneHotkeysSection -->
+</div>
+<!-- BEGIN: BottomActionBar -->
+<footer class="h-16 px-8 bg-mac-sidebar border-t border-mac-border flex items-center justify-between shrink-0" data-purpose="settings-action-bar">
+<button class="text-xs text-mac-textMuted hover:text-white transition-colors flex items-center gap-1.5 font-medium" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+          恢复默认快捷键
+        </button>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 rounded-lg text-xs font-medium text-mac-textSecondary hover:text-white hover:bg-white/[0.05] transition-colors" type="button">
+            取消
+          </button>
+<button class="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 active:scale-95 text-white transition-all shadow-md shadow-blue-600/30 flex items-center gap-1.5" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+            保存并生效
+          </button>
+</div>
+</footer>
+<!-- END: BottomActionBar -->
+</main>
+<!-- END: MainContent -->
+</div>
+<!-- END: AppWindowContainer -->
+
+
+</body></html>
