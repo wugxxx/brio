@@ -6,7 +6,7 @@ struct WorkspaceView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var systemColorScheme
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system.rawValue
-    @FocusState private var sourceFocused: Bool
+    @State private var sourceFocused = false
     @FocusState private var followUpFocused: Bool
     @State private var showsSceneMenu = false
 
@@ -30,6 +30,7 @@ struct WorkspaceView: View {
         }
         .frame(minWidth: 480, idealWidth: 620, minHeight: 480)
         .background(PanelSurface())
+        .background(WindowAppearanceConfigurator(appearance: selectedAppearance))
         .clipShape(panelShape)
         .overlay(
             panelShape.strokeBorder(
@@ -47,7 +48,6 @@ struct WorkspaceView: View {
         )
         .padding(6)
         .environment(\.colorScheme, effectiveScheme)
-        .preferredColorScheme(selectedAppearance.colorScheme)
         .onExitCommand { state.dismissPanel?() }
     }
 
@@ -160,29 +160,17 @@ struct WorkspaceView: View {
     }
 
     private var sourceTextField: some View {
-        TextField(
-            "",
+        WorkspaceSourceEditor(
             text: $state.sourceText,
-            prompt: Text("在此输入或粘贴需要润色或翻译的文本…").foregroundColor(Palette.slate500),
-            axis: .vertical
-        )
-        .textFieldStyle(.plain)
-        .font(.system(size: 13))
-        .lineSpacing(5)
-        .foregroundStyle(Palette.slate200)
-        .lineLimit(4...7)
-        .frame(minHeight: 86, alignment: .topLeading)
-        .focused($sourceFocused)
-        .accessibilityLabel("原文")
-        .help("按 Enter 开始生成，Shift + Enter 换行")
-        .onKeyPress(keys: [.return], phases: .down) { press in
-            guard press.modifiers.isEmpty else { return .ignored }
+            isFocused: $sourceFocused,
+            isEditable: !state.isProcessing,
+            placeholder: "在此输入或粘贴需要润色或翻译的文本…"
+        ) {
             if hasSourceText && !state.isProcessing {
                 state.generate()
             }
-            return .handled
         }
-        .disabled(state.isProcessing)
+        .frame(height: 86)
     }
 
     private var modeBar: some View {
@@ -199,7 +187,7 @@ struct WorkspaceView: View {
             Spacer(minLength: 4)
             PrimaryActionButton(
                 title: primaryActionTitle,
-                keycap: state.isProcessing ? nil : "⌘⏎",
+                keycap: state.isProcessing ? nil : "⏎",
                 action: primaryAction
             )
             .disabled(!state.isProcessing && !hasSourceText)
@@ -972,4 +960,162 @@ private extension NSColor {
 
 private func isDarkAppearance(_ appearance: NSAppearance) -> Bool {
     appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+}
+
+private struct WorkspaceSourceEditor: NSViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    let isEditable: Bool
+    let placeholder: String
+    let onSubmit: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeNSView(context: Context) -> NSScrollView {
+        let scrollView = NSScrollView()
+        scrollView.drawsBackground = false
+        scrollView.contentView.drawsBackground = false
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.focusRingType = .none
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 5
+
+        let textView = WorkspaceSourceTextView()
+        textView.delegate = context.coordinator
+        textView.string = text
+        textView.drawsBackground = false
+        textView.isRichText = false
+        textView.isEditable = isEditable
+        textView.isSelectable = true
+        textView.allowsUndo = true
+        textView.focusRingType = .none
+        textView.font = .systemFont(ofSize: 13)
+        textView.textColor = NSColor(Palette.slate200)
+        textView.insertionPointColor = NSColor(Palette.blue500)
+        textView.defaultParagraphStyle = paragraphStyle
+        textView.typingAttributes = [
+            .font: NSFont.systemFont(ofSize: 13),
+            .foregroundColor: NSColor(Palette.slate200),
+            .paragraphStyle: paragraphStyle
+        ]
+        textView.textContainerInset = NSSize(width: 5, height: 0)
+        textView.textContainer?.lineFragmentPadding = 0
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+        textView.minSize = .zero
+        textView.maxSize = NSSize(
+            width: CGFloat.greatestFiniteMagnitude,
+            height: CGFloat.greatestFiniteMagnitude
+        )
+        textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.containerSize = NSSize(
+            width: scrollView.contentSize.width,
+            height: .greatestFiniteMagnitude
+        )
+        textView.placeholder = placeholder
+        textView.placeholderColor = NSColor(Palette.slate500)
+        textView.onSubmit = onSubmit
+        textView.setAccessibilityLabel("原文")
+        textView.toolTip = "按 Enter 开始生成，Shift + Enter 换行"
+        scrollView.documentView = textView
+
+        return scrollView
+    }
+
+    func updateNSView(_ scrollView: NSScrollView, context: Context) {
+        context.coordinator.parent = self
+        guard let textView = scrollView.documentView as? WorkspaceSourceTextView else { return }
+
+        textView.onSubmit = onSubmit
+        textView.isEditable = isEditable
+        textView.placeholder = placeholder
+        textView.placeholderColor = NSColor(Palette.slate500)
+        if textView.string != text {
+            textView.string = text
+        }
+    }
+
+    final class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: WorkspaceSourceEditor
+
+        init(parent: WorkspaceSourceEditor) {
+            self.parent = parent
+        }
+
+        func textDidChange(_ notification: Notification) {
+            guard let textView = notification.object as? NSTextView else { return }
+            parent.text = textView.string
+        }
+
+        func textDidBeginEditing(_ notification: Notification) {
+            parent.isFocused = true
+        }
+
+        func textDidEndEditing(_ notification: Notification) {
+            parent.isFocused = false
+        }
+    }
+}
+
+private final class WorkspaceSourceTextView: NSTextView {
+    var onSubmit: (() -> Void)?
+    var placeholder = "" {
+        didSet { needsDisplay = true }
+    }
+    var placeholderColor: NSColor = .secondaryLabelColor {
+        didSet { needsDisplay = true }
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard window != nil else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let window = self.window, window.firstResponder !== self else { return }
+            window.makeFirstResponder(self)
+        }
+    }
+
+    override func keyDown(with event: NSEvent) {
+        guard isEditable else {
+            super.keyDown(with: event)
+            return
+        }
+
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let commandModifiers: NSEvent.ModifierFlags = [.command, .control, .option]
+        if event.keyCode == 36 || event.keyCode == 76 {
+            if flags.contains(.shift), flags.intersection(commandModifiers).isEmpty {
+                insertNewline(nil)
+            } else if flags.intersection(commandModifiers).isEmpty {
+                onSubmit?()
+            } else {
+                super.keyDown(with: event)
+            }
+            return
+        }
+
+        super.keyDown(with: event)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard string.isEmpty, !placeholder.isEmpty else { return }
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font ?? NSFont.systemFont(ofSize: 13),
+            .foregroundColor: placeholderColor
+        ]
+        let origin = NSPoint(
+            x: textContainerOrigin.x + (textContainer?.lineFragmentPadding ?? 5),
+            y: textContainerOrigin.y
+        )
+        NSAttributedString(string: placeholder, attributes: attributes).draw(at: origin)
+    }
 }

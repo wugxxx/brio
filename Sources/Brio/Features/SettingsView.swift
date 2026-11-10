@@ -85,9 +85,9 @@ struct SettingsView: View {
             mainPanel
         }
         .background(palette.canvas)
+        .background(WindowAppearanceConfigurator(appearance: selectedAppearance))
         .environment(\.settingsPalette, palette)
         .environment(\.colorScheme, effectiveScheme)
-        .preferredColorScheme(selectedAppearance.colorScheme)
         .frame(minWidth: 900, idealWidth: 980, minHeight: 620, idealHeight: 700)
         .onAppear(perform: loadState)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -150,8 +150,6 @@ struct SettingsView: View {
 
             SettingsThemeControl(
                 appearance: selectedAppearance,
-                isDark: effectiveScheme == .dark,
-                toggle: toggleAppearance,
                 select: { appearance = $0.rawValue }
             )
             .padding(.horizontal, 10)
@@ -249,7 +247,7 @@ struct SettingsView: View {
             ) {
                 SettingsInsetRow(
                     symbol: "accessibility",
-                    title: "辅助功能权限 (Accessibility API)",
+                    title: "辅助功能权限",
                     tint: palette.accentText
                 ) {
                     HStack(spacing: 8) {
@@ -364,7 +362,6 @@ struct SettingsView: View {
                     SettingsTextField(
                         text: $baseURL,
                         prompt: "https://api.openai.com/v1",
-                        leadingText: "POST",
                         monospaced: true
                     )
                 }
@@ -377,7 +374,7 @@ struct SettingsView: View {
                     )
                 }
 
-                SettingsFormRow(symbol: "cpu", title: "模型名称 (Model)") {
+                SettingsFormRow(symbol: "cpu", title: "模型名称") {
                     SettingsTextField(
                         text: $model,
                         prompt: "如 deepseek-chat、gpt-4o",
@@ -853,9 +850,6 @@ struct SettingsView: View {
         sceneInstruction = ""
     }
 
-    private func toggleAppearance() {
-        appearance = (effectiveScheme == .dark ? AppAppearance.light : .dark).rawValue
-    }
 }
 
 private struct SettingsThemeControl: View {
@@ -863,95 +857,53 @@ private struct SettingsThemeControl: View {
     @State private var hovering = false
 
     let appearance: AppAppearance
-    let isDark: Bool
-    let toggle: () -> Void
     let select: (AppAppearance) -> Void
 
-    private var detail: String {
-        switch appearance {
-        case .system: "跟随系统 · \(isDark ? "深色" : "浅色")"
-        case .light: "浅色"
-        case .dark: "深色"
-        }
+    private var nextAppearance: AppAppearance {
+        let options = AppAppearance.allCases
+        guard let index = options.firstIndex(of: appearance) else { return .system }
+        return options[(index + 1) % options.count]
     }
 
     var body: some View {
-        VStack(spacing: 8) {
-            Rectangle()
-                .fill(palette.hairline)
-                .frame(height: 1)
-                .padding(.horizontal, 2)
-
-            Button(action: toggle) {
-                HStack(spacing: 10) {
-                    SettingsIconTile(
-                        symbol: isDark ? "moon.stars.fill" : "sun.max.fill",
-                        tint: isDark ? palette.accentText : palette.warning,
-                        size: 28
-                    )
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("外观")
-                            .font(SettingsType.rowTitle())
-                            .foregroundStyle(palette.textPrimary)
-                        Text(detail)
-                            .font(SettingsType.micro)
-                            .foregroundStyle(palette.textMuted)
-                    }
-                    Spacer(minLength: 8)
-                    SettingsThemeSwitch(isOn: isDark)
-                }
-                .padding(.horizontal, 8)
-                .frame(height: 42)
+        Button {
+            select(nextAppearance)
+        } label: {
+            Image(systemName: appearance.symbol)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(hovering ? palette.accentText : palette.textSecondary)
+                .frame(width: 30, height: 26)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(hovering ? palette.hover.opacity(palette.isDark ? 0.82 : 1) : .clear)
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(hovering ? palette.hover : palette.controlFill)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .strokeBorder(
+                            hovering ? palette.accent.opacity(0.35) : palette.border,
+                            lineWidth: 1
+                        )
                 )
                 .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .onHover { hovering = $0 }
-            .help("切换到\(isDark ? "浅色" : "深色")模式，右键可选择跟随系统")
-            .accessibilityLabel("外观")
-            .accessibilityValue(detail)
-            .accessibilityHint("切换到\(isDark ? "浅色" : "深色")模式")
-            .contextMenu {
-                ForEach(AppAppearance.allCases, id: \.self) { option in
-                    Button {
-                        select(option)
-                    } label: {
-                        Label(
-                            option.title,
-                            systemImage: appearance == option ? "checkmark" : option.symbol
-                        )
-                    }
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help("外观：\(appearance.title) · 点击切换")
+        .accessibilityLabel("外观")
+        .accessibilityValue(appearance.title)
+        .accessibilityHint("点击切换到\(nextAppearance.title)")
+        .contextMenu {
+            ForEach(AppAppearance.allCases, id: \.self) { option in
+                Button {
+                    select(option)
+                } label: {
+                    Label(
+                        option.title,
+                        systemImage: appearance == option ? "checkmark" : option.symbol
+                    )
                 }
             }
         }
-    }
-}
-
-private struct SettingsThemeSwitch: View {
-    @Environment(\.settingsPalette) private var palette
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    let isOn: Bool
-
-    var body: some View {
-        ZStack(alignment: isOn ? .trailing : .leading) {
-            Capsule()
-                .fill(isOn ? palette.accent : palette.controlFill)
-            Circle()
-                .fill(isOn ? palette.onAccent : palette.textMuted)
-                .frame(width: 14, height: 14)
-                .padding(2)
-        }
-        .frame(width: 30, height: 18)
-        .overlay(
-            Capsule()
-                .strokeBorder(isOn ? palette.accent.opacity(0.7) : palette.border, lineWidth: 1)
-        )
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isOn)
-        .accessibilityHidden(true)
     }
 }
 
@@ -989,14 +941,6 @@ private struct SettingsNavRow: View {
                             : (hovering ? palette.hover.opacity(palette.isDark ? 0.82 : 1) : .clear)
                     )
             )
-            .overlay(alignment: .leading) {
-                if selected {
-                    Capsule()
-                        .fill(palette.accent)
-                        .frame(width: 2, height: 17)
-                        .offset(x: -1)
-                }
-            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

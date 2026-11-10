@@ -61,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         settingsWindow?.orderOut(nil)
         NSApp.activate(ignoringOtherApps: true)
         panel?.level = AppState.shared.isPinned ? .floating : .normal
+        panel?.appearance = AppAppearance.current.nsAppearance
         panel?.center()
         panel?.makeKeyAndOrderFront(nil)
     }
@@ -91,11 +92,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.toolbarStyle = .unifiedCompact
             window.toolbar = NSToolbar()
             window.contentView = NSHostingView(rootView: view)
+            window.appearance = AppAppearance.current.nsAppearance
             window.center()
             window.isReleasedWhenClosed = false
             settingsWindow = window
         }
         NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.appearance = AppAppearance.current.nsAppearance
         settingsWindow?.makeKeyAndOrderFront(nil)
     }
 
