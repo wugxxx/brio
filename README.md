@@ -77,6 +77,10 @@ Scripts/build-iconset.sh Resources/IconDesign/Brio-Paper-1024.png
 
 构建 `.app` 时会自动打包 `AppIcon.icns`。
 
+## 设计规范
+
+浅色与暗黑主题的合并规范见 `DESIGN.md`，Stitch 参考稿位于 `design/stitch/`。
+
 ## 验证
 
 ```sh

@@ -56,7 +56,7 @@ The exact positioning language is inferred from the implementation and has not b
 
 - `README.md` documents the prototype, build flow, Accessibility requirement, and distribution path.
 - No testimonials, customer logos, benchmarks, press coverage, or production usage data exist. Future work must not fabricate them.
-- No committed screenshots or design-system record exist yet.
+- A committed design-system record lives in `DESIGN.md`; reference screens are under `design/stitch/`.
 
 ## Product Principles
 
